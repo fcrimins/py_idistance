@@ -15,34 +15,42 @@ def bplus_tree(dat):
     
     time_idist = 0.0
     time_seq = 0.0
+    neighbors_idist = 0
+    neighbors_seq = 0
+    iters = 0
     
     for mat in dat:
         for j in xrange(mat.shape[0]):
+            iters += 1
     
             #query_pt = np.array([0.0, 0.0])
             #query_pt = dat[0][0]
             query_pt = mat[j,:]
             query_pt = np.copy(query_pt)
-            query_pt += [0.3, -0.1]
+            query_pt += [0.2, -0.1]
     
             K_ = 5
             
             t0 = time.clock()
+            globals()['_neighbors_visited'] = 0
             #print('KNN SEARCH {}'.format(query_pt))
             knn = _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max)
             time_idist += time.clock() - t0
+            neighbors_idist += globals()['_neighbors_visited']
             
             t0 = time.clock()
+            globals()['_neighbors_visited'] = 0
             #print('KNN SEARCH SEQUENTIAL {}'.format(query_pt))
             knn_seq = _knn_search_sequential(dat, query_pt, K_)
             time_seq += time.clock() - t0
+            neighbors_seq += globals()['_neighbors_visited']
             
             print('KNN EQUAL {}? - {}'.format(query_pt, knn.sort() == knn_seq.sort()))
             if knn != knn_seq:
                 breakpt = None
-                
-    print('time_idist (s) = {}'.format(time_idist))
-    print('time_seq   (s) = {}'.format(time_seq))
+
+    print('times (s): {}/{} = {}'.format(time_idist, time_seq, time_idist/time_seq))
+    print('neighbors (per iter) = {}/{} = {}'.format(float(neighbors_idist) / iters, float(neighbors_seq) / iters, float(neighbors_idist) / neighbors_seq))
     
     return 0
 
@@ -61,7 +69,8 @@ def _knn_search_sequential(dat, query_pt, K_):
 
 def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max):
 
-    radius = 0.01 # R_ (initial radius to search)
+    radius = C_ / 50.0 # e.g. 0.2, R_ (initial radius to search)
+    radius_increment = radius
     # @TODO: initalize radius to a fraction of C_; use some empirical tests to figure out optimal
     
     knn_heap = []
@@ -76,7 +85,10 @@ def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max
     # -knn_heap[0][0] is the distance to the farthest point in the current knn, so as long
     # as radius is smaller than that, there could still be points outside of radius that are closer
     while radius < C_ and (len(knn_heap) < K_ or radius < -knn_heap[0][0]):
-        radius *= 2.0 # @TODO: no need to grow geometrically as search area is growing as the square of this already
+        
+        # no need to grow geometrically as search area is growing as the square of this already
+        radius += radius_increment
+
         #print('RADIUS = {}'.format(radius))
         _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max)
 
@@ -181,10 +193,11 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     if right_idxs[part_i] >= num_idists or node[0] > idist_max: 
         right_idxs[part_i] = None
 
-
+_neighbors_visited = 0
 def _add_neighbor(knn_heap, K_, node, dist_node):
     """Maintain a heap of the K_ closest neighbors
     """
+    globals()['_neighbors_visited'] += 1
     # heapq maintains a "min heap" so we store by -dist
     heap_node = (-dist_node, node[1], node[2])
     #print('_add_neighbor: {}'.format(heap_node))

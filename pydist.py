@@ -1,8 +1,10 @@
 #!/usr/bin/python
+from __future__ import division
 import sys
 import os
 import numpy as np
 import idist
+
 
 def main(argv):
     
