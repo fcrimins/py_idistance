@@ -2,10 +2,16 @@ import numpy as np
 import bisect
 import heapq
 
+_round_precision = None
+def _round_given_C(f):
+    temp = int(f * _round_precision + 0.5)
+    return temp / _round_precision
+
 
 def bplus_tree(dat):
     
     C_, maxs, mins = _calculate_c(dat)
+    globals()['_round_precision'] = 10.0**(-np.log10(C_) + 5)
     
     ref_pts = _reference_points(maxs, mins)
     
@@ -18,23 +24,20 @@ def bplus_tree(dat):
     knn = _knn_search(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max)
     
     print('KNN SEARCH SEQUENTIAL')
-#     knn_seq = _knn_search_sequential(dat, query_pt, K_)
+    knn_seq = _knn_search_sequential(dat, query_pt, K_)
     
     return 0
 
 
 def _knn_search_sequential(dat, query_pt, K_):
-    
+    """Search sequentially through every point in dat for query_pt's K_ nearest
+    neighbors.
+    """
     knn_heap = []
-    
     for i, mat in enumerate(dat):
-        
         dists = np.sqrt(np.sum((mat - query_pt)**2, axis=1))
-        
         for j in xrange(mat.shape[0]): # for each row/point
-            
             _add_neighbor(knn_heap, K_, (None, i, j), dists[j])
-            
     return knn_heap            
 
 
@@ -51,7 +54,9 @@ def _knn_search(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max):
     left_idxs = [None] * len(ref_pts)
     right_idxs = [None] * len(ref_pts)
     
-    while len(knn_heap) < K_ and radius < C_:
+    # -knn_heap[0][0] is the distance to the farthest point in the current knn, so as long
+    # as radius is smaller than that, there could still be points outside of radius that are closer
+    while radius < C_ and (len(knn_heap) < K_ or radius < -knn_heap[0][0]):
         radius *= 2.0
         print('RADIUS = {}'.format(radius))
         _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max)
@@ -67,8 +72,8 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
         d_rp = np.sqrt(np.sum((rp - query_pt)**2))
         
         # calculate the iDistance/index of the query point (for the current ref point)
-        q_idist = i * C_ + d_rp # @TODO: roundOff necessary?
-
+        q_idist = _round_given_C(i * C_ + d_rp) # @TODO: roundOff necessary?
+        
         if not partition_checked[i]:
             
             # filter dist(O_i, q) - querydist(q)="r" <= dist_max_i
@@ -81,13 +86,17 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
                 if d_rp <= partition_dist_max[i]:
                     
                     # find query pt and search inwards/left and outwards/right
-                    right_idxs[i] = bisect.bisect_right(idists, (q_idist, None, None)) # strictly greater than
+                    right_idxs[i] = bisect.bisect_right(idists, (q_idist, -1, -1)) # strictly greater than
+                    
+#                     if idists[right_idxs[i]][0] <= q_idist:
+#                         print('rounding error??? - nope {} <= {}'.format(idists[right_idxs[i]][0], q_idist))
+                    
                     left_idxs[i] = right_idxs[i] - 1 # <=
                     _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
                     _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max)
 
                 else: # query sphere intersects, so only search inward towards the ref point
-                    left_idxs[i] = bisect.bisect_right(idists, ((i + 1) * C_, None, None)) - 1 # <=
+                    left_idxs[i] = bisect.bisect_right(idists, ((i + 1) * C_, -1, -1)) - 1 # <=
                     _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
                     right_idxs[i] = None
                     
@@ -138,7 +147,7 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     stopping_val : double
       Stopping value (i.e. query index - radius).
     """
-    idist_max = part_i * C_ + partition_dist_max[part_i]
+    idist_max = _round_given_C(part_i * C_ + partition_dist_max[part_i])
     
     node = idists[right_idxs[part_i]]
     print('Searching outward from {} ({})'.format(node, right_idxs[part_i]))
@@ -168,8 +177,10 @@ def _add_neighbor(knn_heap, K_, node, dist_node):
     
     # @TODO: only add neighbor if it isn't in the same cross validation bucket as the query point
     if len(knn_heap) < K_:
-        heapq.heappush(knn_heap, heap_node)
-    else:
+        heapq.heappush(knn_heap, heap_node) # @TODO: does this perform an assignment?  does it matter?
+    
+    # -knn_heap[0][0] is the distance to the farthest point in the current knn
+    elif dist_node < -knn_heap[0][0]:
         heapq.heappushpop(knn_heap, heap_node)
 
 
@@ -200,7 +211,7 @@ def _idistance_index(dat, ref_pts, C_):
             ref_dist = np.sqrt(ssq[minr])
             
             # @TODO: is roundOff needed like it is in the C++ code?
-            idist = minr * C_ + ref_dist
+            idist = _round_given_C(minr * C_ + ref_dist)
             idists[-1].append(idist)
             sorted_idists.append((idist, i, j))
             
