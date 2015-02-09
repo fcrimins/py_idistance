@@ -3,17 +3,98 @@ import numpy as np
 
 def bplus_tree(dat):
     
-    c_constant, maxs, mins = _calculate_c(dat)
+    C_, maxs, mins = _calculate_c(dat)
     
     ref_pts = _reference_points(maxs, mins)
     
-    idists, partition_dist_max, partition_dist_max_idx = _idistance_index(dat, ref_pts, c_constant)
+    idists, partition_dist_max, partition_dist_max_idx = _idistance_index(dat, ref_pts, C_)
     
+    query_pt = np.ndarray(0.0, 0.0)
+    K_ = 5
+    knn = _knn_search(query_pt, k, ref_pts, partition_dist_max)
     
     return 0
 
 
-def _idistance_index(dat, ref_pts, c_constant):
+def _knn_search(query_pt, K_, ref_pts, partition_dist_max):
+
+    radius = 0.01 # R_ (initial radius to search)
+    stop = False
+    K_ = num
+    
+    knn_idxs = []
+    knn_dists = []
+    knn_nodes = []
+    knn_candidates = []
+    
+    # variable to mark for partitions checked
+    partition_checked = [False] * len(ref_pts)
+    knn_pfarthest = 0
+
+    # arrays of iterators
+    left_idxs = [None] * len(ref_pts)
+    right_idxs = [None] * len(ref_pts)
+    
+    while(radius < C_ and knn_idxs < K_):
+        radius *= 2.0
+        _knn_search_radius(query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, partition_dist_max)
+
+    return knn_idxs
+
+
+def _knn_search_radius(query_pt, R_, C_, ref_pts, left_idxs, right_idxs, partition_checked, partition_dist_max):
+
+    for i, rp in enumerate(ref_pts):
+    
+        # calc distance from query point to partition i
+        d_rp = np.sqrt(np.sum((rp - query_pt)**2))
+        
+        # calculate the iDistance/index of the query point (for the current ref point)
+        q_index = i * C_ + d_rp # TODO: roundOff necessary?
+
+        if not partition_checked[i]:
+            
+            # filter dist(O_i, q) - querydist(q)="r" <= dist_max_i
+            # (if the search radius from q overlaps w/ the partition's max radius)
+            if d_rp - R_ <= partition_dist_max[i]:
+                
+                partition_checked[i] = True
+                
+                # if query point is inside this partition, must search left and right
+                if d_rp <= partition_dist_max[i]:
+                    
+                    # find query pt and search inwards/left and outwards/right
+                    left_idxs[i] = right_idxs[i] = btree.upper_bound(q_index);
+                    SearchInward_KEEP(left_idxs[i], q_index - r, q, i, sort);
+                    SearchOutward_KEEP(right_idxs[i], q_index + r, q, i, sort);
+                }
+                else //it intersects, so only search "left", i.e. towards the ref point
+                {
+                    //cout<<"Intersect Partition "<<i<<", q_index = " << q_index <<endl;
+                    //get the index value(y) of the pt of dist max
+                    left_idxs[i] = btree.find(datapoint_index[partition_dist_max_index[i]]);
+                    SearchInward_KEEP(left_idxs[i], q_index - r, q, i, sort);
+                    right_idxs[i] = btree.end();
+                }
+            }
+        }
+        else //we've checked it before
+        {
+            if(left_idxs[i] != btree.end()) //can't actually check if it's null (FWC - could initialize it to a pointer to an iterator tho)
+                SearchInward_KEEP(left_idxs[i], q_index - r, q, i, sort);
+            if(right_idxs[i] != btree.end())
+                SearchOutward_KEEP(right_idxs[i], q_index + r, q, i, sort);
+        }
+    }
+}
+
+
+
+
+
+
+
+def _idistance_index(dat, ref_pts, C_):
     """Compute nearest reference point to each point along with farthest point from
     each reference point.  Returns the "iDistance" for each point with reference point
     r_i, i.e. iDistance = i * C * d_ij, where C is the constant C and d is the distance
@@ -39,7 +120,7 @@ def _idistance_index(dat, ref_pts, c_constant):
             ref_dist = np.sqrt(ssq[minr])
             
             # TODO: is roundOff needed like it is in the C++ code?
-            idists[-1].append(minr * c_constant + ref_dist)
+            idists[-1].append(minr * C_ + ref_dist)
             
             if ref_dist > partition_dist_max[minr]:
                 partition_dist_max[minr] = ref_dist
