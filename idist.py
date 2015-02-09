@@ -7,96 +7,45 @@ def bplus_tree(dat):
     
     ref_pts = _reference_points(maxs, mins)
     
-    idists = _idistance_index(dat, ref_pts, c_constant)
+    idists, partition_dist_max, partition_dist_max_idx = _idistance_index(dat, ref_pts, c_constant)
     
     
     return 0
 
 
 def _idistance_index(dat, ref_pts, c_constant):
-
+    """Compute nearest reference point to each point along with farthest point from
+    each reference point.  Returns the "iDistance" for each point with reference point
+    r_i, i.e. iDistance = i * C * d_ij, where C is the constant C and d is the distance
+    from r_i to point j.  Also returns the distance to each reference point's farthest
+    point along with its index.
+    """
     idists = []
     partition_dist_max = [0.0] * len(ref_pts)
-    partition_dist_max_index = [None] * len(ref_pts)
+    partition_dist_max_idx = [None] * len(ref_pts)
     
     for i, mat in enumerate(dat): # for each data file matrix
         idists.append([])
 
         for j in xrange(mat.shape[0]): # for each row/point
             
-            row = mat[j,:] # TODO: bind this method before the loops
+            row = mat[j,:] # TODO: bind this (and the following) method before the loops
             
-            subtr = (ref_pts - row)**2 # difference per dim squared
+            sq = (ref_pts - row)**2 # difference (to each ref point) per dim squared
             
-            sq_dists = np.sum(subtr, axis=1)
+            ssq = np.sum(sq, axis=1) # SSD to each ref point
             
-            min_ref_idx = np.argmin(sq_dists)
+            minr = np.argmin(ssq) # index of closest ref point
+            ref_dist = np.sqrt(ssq[minr])
             
             # TODO: is roundOff needed like it is in the C++ code?
-            idists[-1].append(min_ref_idx * c_constant + np.sqrt(sq_dists[min_ref_idx]))
+            idists[-1].append(minr * c_constant + ref_dist)
             
-            
-            
-            
-#             
-#             np.argmin(
-# 
-#             for k, rp in enumerate(ref_pts): # for each reference point
-# 
-#                 d = np.sum(mat[j,:] - rp)**2)
-#             
-#         
-#         ref_dist = dist(&datapoints[offset],&reference_points[0]);
-#         
-#         //if(idp) { cout << "checking point " << i << endl; }
-#         
-#         //if(idp) { cout << "p 0: " << ref_dist << endl; }
-#          
-#         //check each partition (baseline from partition 0)
-#         for(int part=1; part < number_partitions; part++)
-#         {
-#             //get distance to this partition
-#             temp_dist = dist(&datapoints[offset],&reference_points[part*number_dimensions]);
-#         
-#             //if(idp) { cout << "p " << part << ": " << temp_dist << endl; }
-#             
-#             if(temp_dist < ref_dist) //if closer to this partition
-#             {
-#                 //if(idp) { cout << "  - updating from " << current_partition << endl; }
-#                 
-#                 current_partition = part; //update
-#                 ref_dist = temp_dist;
-#                 
-#             }
-#         }
-#         
-#         
-#         //if(idp) { cout << "final part = " << current_partition << " : " << ref_dist << endl; }
-#         
-#         //calculate key index value
-#         //datapoint_index[i] = current_partition*constant_c + ref_dist;
-#         
-#         //updated to try to fix double precision issues
-#         temp_dist = roundOff(current_partition*constant_c + ref_dist);
-#         
-#         //if(idp) { cout << "  index_dist = " << temp_dist << endl; }
-#         
-#         datapoint_index[i] = temp_dist;
-#         
-#         //cout << "  DATA INDEX: " << datapoint_index[i] << " P: " <<
-#         //  current_partition << " D: " << ref_dist << endl;
-#         
-#         //also need to update partition dist_max
-#         if(ref_dist > partition_dist_max[current_partition])
-#         {
-#             partition_dist_max[current_partition] = ref_dist;
-#             partition_dist_max_index[current_partition] = i;
-#         }
-#     }
-# }
+            if ref_dist > partition_dist_max[minr]:
+                partition_dist_max[minr] = ref_dist
+                partition_dist_max_idx[minr] = (i, j)
 
-
-
+    return idists, partition_dist_max, partition_dist_max_idx
 
 
 def _reference_points(mins, maxs):
