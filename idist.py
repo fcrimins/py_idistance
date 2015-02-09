@@ -12,16 +12,25 @@ def bplus_tree(dat):
     
     idists, partition_dist_max = _idistance_index(dat, ref_pts, C_)
     
-    query_pt = np.array([0.0, 0.0])
-    #query_pt = dat[0][0]
-    K_ = 5
-    print('KNN SEARCH')
-    knn = _knn_search(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max)
+    for mat in dat:
+        for j in xrange(mat.shape[0]):
     
-    print('KNN SEARCH SEQUENTIAL')
-    knn_seq = _knn_search_sequential(dat, query_pt, K_)
+            #query_pt = np.array([0.0, 0.0])
+            #query_pt = dat[0][0]
+            query_pt = mat[j,:]
+            query_pt = np.copy(query_pt)
+            query_pt += [0.3, -0.1]
     
-    print('KNN EQUAL? - {}'.format(knn.sort() == knn_seq.sort()))
+            K_ = 5
+            #print('KNN SEARCH {}'.format(query_pt))
+            knn = _knn_search(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max)
+            
+            #print('KNN SEARCH SEQUENTIAL {}'.format(query_pt))
+            knn_seq = _knn_search_sequential(dat, query_pt, K_)
+            
+            print('KNN EQUAL {}? - {}'.format(query_pt, knn.sort() == knn_seq.sort()))
+            if knn != knn_seq:
+                bp = None
     
     return 0
 
@@ -54,8 +63,8 @@ def _knn_search(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max):
     # -knn_heap[0][0] is the distance to the farthest point in the current knn, so as long
     # as radius is smaller than that, there could still be points outside of radius that are closer
     while radius < C_ and (len(knn_heap) < K_ or radius < -knn_heap[0][0]):
-        radius *= 2.0
-        print('RADIUS = {}'.format(radius))
+        radius *= 2.0 # @TODO: no need to grow geometrically as search area is growing as the square of this already
+        #print('RADIUS = {}'.format(radius))
         _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max)
 
     return knn_heap
@@ -118,7 +127,7 @@ def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, q
     partition_offset = part_i * C_ # lower partition boundary (b/c iterating down)
     
     node = idists[left_idxs[part_i]]
-    print('Searching inward from {} ({})'.format(node, left_idxs[part_i]))
+    #print('Searching inward from {} ({})'.format(node, left_idxs[part_i]))
 
     # while not to stopping value and still inside partition
     while left_idxs[part_i] >= 0 and node[0] >= stopping_val and node[0] >= partition_offset:
@@ -147,7 +156,7 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     idist_max = part_i * C_ + partition_dist_max[part_i]
     
     node = idists[right_idxs[part_i]]
-    print('Searching outward from {} ({})'.format(node, right_idxs[part_i]))
+    #print('Searching outward from {} ({})'.format(node, right_idxs[part_i]))
     
     num_idists = len(idists)
 
@@ -169,8 +178,7 @@ def _add_neighbor(knn_heap, K_, node, dist_node):
     """
     # heapq maintains a "min heap" so we store by -dist
     heap_node = (-dist_node, node[1], node[2])
-    
-    print('_add_neighbor: {}'.format(heap_node))
+    #print('_add_neighbor: {}'.format(heap_node))
     
     # @TODO: only add neighbor if it isn't in the same cross validation bucket as the query point
     if len(knn_heap) < K_:
