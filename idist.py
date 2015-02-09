@@ -1,30 +1,27 @@
+import logging
 import numpy as np
 import bisect
 import heapq
-
-_round_precision = None
-def _round_given_C(f):
-    temp = int(f * _round_precision + 0.5)
-    return temp / _round_precision
 
 
 def bplus_tree(dat):
     
     C_, maxs, mins = _calculate_c(dat)
-    globals()['_round_precision'] = 10.0**(-np.log10(C_) + 5)
     
     ref_pts = _reference_points(maxs, mins)
     
     idists, partition_dist_max = _idistance_index(dat, ref_pts, C_)
     
     query_pt = np.array([0.0, 0.0])
-    query_pt = dat[0][0]
+    #query_pt = dat[0][0]
     K_ = 5
     print('KNN SEARCH')
     knn = _knn_search(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max)
     
     print('KNN SEARCH SEQUENTIAL')
     knn_seq = _knn_search_sequential(dat, query_pt, K_)
+    
+    print('KNN EQUAL? - {}'.format(knn.sort() == knn_seq.sort()))
     
     return 0
 
@@ -72,7 +69,7 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
         d_rp = np.sqrt(np.sum((rp - query_pt)**2))
         
         # calculate the iDistance/index of the query point (for the current ref point)
-        q_idist = _round_given_C(i * C_ + d_rp) # @TODO: roundOff necessary?
+        q_idist = i * C_ + d_rp
         
         if not partition_checked[i]:
             
@@ -147,7 +144,7 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     stopping_val : double
       Stopping value (i.e. query index - radius).
     """
-    idist_max = _round_given_C(part_i * C_ + partition_dist_max[part_i])
+    idist_max = part_i * C_ + partition_dist_max[part_i]
     
     node = idists[right_idxs[part_i]]
     print('Searching outward from {} ({})'.format(node, right_idxs[part_i]))
@@ -211,7 +208,7 @@ def _idistance_index(dat, ref_pts, C_):
             ref_dist = np.sqrt(ssq[minr])
             
             # @TODO: is roundOff needed like it is in the C++ code?
-            idist = _round_given_C(minr * C_ + ref_dist)
+            idist = minr * C_ + ref_dist
             idists[-1].append(idist)
             sorted_idists.append((idist, i, j))
             
