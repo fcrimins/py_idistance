@@ -2,6 +2,7 @@ import logging
 import numpy as np
 import bisect
 import heapq
+import time
 
 
 def bplus_tree(dat):
@@ -11,6 +12,9 @@ def bplus_tree(dat):
     ref_pts = _reference_points(maxs, mins)
     
     idists, partition_dist_max = _idistance_index(dat, ref_pts, C_)
+    
+    time_idist = 0.0
+    time_seq = 0.0
     
     for mat in dat:
         for j in xrange(mat.shape[0]):
@@ -22,15 +26,23 @@ def bplus_tree(dat):
             query_pt += [0.3, -0.1]
     
             K_ = 5
-            #print('KNN SEARCH {}'.format(query_pt))
-            knn = _knn_search(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max)
             
+            t0 = time.clock()
+            #print('KNN SEARCH {}'.format(query_pt))
+            knn = _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max)
+            time_idist += time.clock() - t0
+            
+            t0 = time.clock()
             #print('KNN SEARCH SEQUENTIAL {}'.format(query_pt))
             knn_seq = _knn_search_sequential(dat, query_pt, K_)
+            time_seq += time.clock() - t0
             
             print('KNN EQUAL {}? - {}'.format(query_pt, knn.sort() == knn_seq.sort()))
             if knn != knn_seq:
-                bp = None
+                breakpt = None
+                
+    print('time_idist (s) = {}'.format(time_idist))
+    print('time_seq   (s) = {}'.format(time_seq))
     
     return 0
 
@@ -47,9 +59,10 @@ def _knn_search_sequential(dat, query_pt, K_):
     return knn_heap            
 
 
-def _knn_search(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max):
+def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max):
 
     radius = 0.01 # R_ (initial radius to search)
+    # @TODO: initalize radius to a fraction of C_; use some empirical tests to figure out optimal
     
     knn_heap = []
     
@@ -93,10 +106,6 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
                     
                     # find query pt and search inwards/left and outwards/right
                     right_idxs[i] = bisect.bisect_right(idists, (q_idist, -1, -1)) # strictly greater than
-                    
-#                     if idists[right_idxs[i]][0] <= q_idist:
-#                         print('rounding error??? - nope {} <= {}'.format(idists[right_idxs[i]][0], q_idist))
-                    
                     left_idxs[i] = right_idxs[i] - 1 # <=
                     _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
                     _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max)
