@@ -5,7 +5,7 @@ import heapq
 import time
 
 
-def bplus_tree(dat, iradius):
+def bplus_tree(dat, iradius, K_):
     
     C_, maxs, mins = _calculate_c(dat)
     
@@ -21,6 +21,10 @@ def bplus_tree(dat, iradius):
     neighbors_seq = 0
     niters = 0
     
+    if K_ is None:
+        K_ = 5
+    print('k = {}'.format(K_))
+
     for mat in dat:
         for j in xrange(mat.shape[0]):
             #query_pt = np.array([0.0, 0.0])
@@ -28,8 +32,6 @@ def bplus_tree(dat, iradius):
             query_pt = mat[j,:]
             query_pt = np.copy(query_pt)
             #query_pt += [0.2, -0.1]
-    
-            K_ = 5
             
             t0 = time.clock()
             globals()['_neighbors_visited'] = 0
@@ -52,7 +54,7 @@ def bplus_tree(dat, iradius):
                 breakpt = None
 
             niters += 1
-            if niters > 5:
+            if niters > 1:
                 globals()['stop_printing'] = None
             if niters > 100:
                 break
@@ -79,8 +81,11 @@ def _knn_search_sequential(dat, query_pt, K_):
 
 
 def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius):
+    
+    num_points = sum(m.shape[0] for m in dat)
 
     radius = (iradius if iradius else 0.2) # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
+    #radius = C_ / num_points * np.power(K_, 1.0 / dat[0].shape[1]) * (iradius if iradius else 10.0)
     if 'radius_printed' not in globals():
         print('radius = {}'.format(radius))
         print('C = {}'.format(C_))
@@ -110,7 +115,7 @@ def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max
         _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count)
 
     if 'stop_printing' not in globals():
-        print('final radius: {}'.format(radius))
+        print('final radius: {} ({}x)'.format(radius, int(radius / radius_increment + 0.5)))
         for i, cnt in enumerate(visited_count):
             print('    reference point {} visits: {}'.format(i, cnt))
     return knn_heap
