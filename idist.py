@@ -52,15 +52,16 @@ def bplus_tree(dat):
                 breakpt = None
 
             niters += 1
-#             if niters > 5:
-#                 break
-#     
-#         if niters > 5:
-#             break
+            if niters > 5:
+                globals()['stop_printing'] = None
+            if niters > 100:
+                break
+        if niters > 100:
+            break
 
     print('indexation time (s): {}'.format(time_index))
     print('times (s): {}/{} = {}'.format(time_idist, time_seq, time_idist/time_seq))
-    print('neighbors (per iter) = {}/{} = {}'.format(float(neighbors_idist) / niters, float(neighbors_seq) / niters, float(neighbors_idist) / neighbors_seq))
+    print('neighbors (per iter): {}/{} = {}'.format(float(neighbors_idist) / niters, float(neighbors_seq) / niters, float(neighbors_idist) / neighbors_seq))
     
     return 0
 
@@ -96,6 +97,8 @@ def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max
     left_idxs = [None] * len(ref_pts)
     right_idxs = [None] * len(ref_pts)
     
+    visited_count = [(0, 0)] * len(ref_pts)
+    
     # -knn_heap[0][0] is the distance to the farthest point in the current knn, so as long
     # as radius is smaller than that, there could still be points outside of radius that are closer
     while radius < C_ and (len(knn_heap) < K_ or radius < -knn_heap[0][0]):
@@ -104,12 +107,16 @@ def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max
         radius += radius_increment
 
         #print('RADIUS = {}'.format(radius))
-        _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max)
+        _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count)
 
+    if 'stop_printing' not in globals():
+        print('final radius: {}'.format(radius))
+        for i, cnt in enumerate(visited_count):
+            print('    reference point {} visits: {}'.format(i, cnt))
     return knn_heap
 
 
-def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max):
+def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count):
 
     for i, rp in enumerate(ref_pts):
     
@@ -133,22 +140,22 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
                     # find query pt and search inwards/left and outwards/right
                     right_idxs[i] = bisect.bisect_right(idists, (q_idist, -1, -1)) # strictly greater than
                     left_idxs[i] = right_idxs[i] - 1 # <=
-                    _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
-                    _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max)
+                    _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i, visited_count)
+                    _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max, visited_count)
 
                 else: # query sphere intersects, so only search inward towards the ref point
                     left_idxs[i] = bisect.bisect_right(idists, ((i + 1) * C_, -1, -1)) - 1 # <=
-                    _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
+                    _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i, visited_count)
                     right_idxs[i] = None
                     
         else: # we've checked this partition before
             if left_idxs[i] is not None:
-                _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
+                _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i, visited_count)
             if right_idxs[i] is not None:
-                _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max)
+                _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max, visited_count)
 
 
-def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, query_pt, part_i):
+def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, query_pt, part_i, visited_count):
     """Iterate left_idxs[part_i] inward towards reference point until stopping value has
     been reached or partion has been exited.
     
@@ -168,6 +175,7 @@ def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, q
     while left_idxs[part_i] >= 0 and node[0] >= stopping_val and node[0] >= partition_offset:
         dist_node = np.sqrt(np.sum((dat[node[1]][node[2]] - query_pt)**2))
         _add_neighbor(knn_heap, K_, node, dist_node)
+        visited_count[part_i] = (visited_count[part_i][0] + 1, visited_count[part_i][1])
         left_idxs[part_i] -= 1
         if left_idxs[part_i] >= 0:
             node = idists[left_idxs[part_i]]
@@ -177,7 +185,7 @@ def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, q
         left_idxs[part_i] = None
 
 
-def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val, query_pt, part_i, partition_dist_max):
+def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val, query_pt, part_i, partition_dist_max, visited_count):
     """Iterate right_idxs[part_i] outward away from reference point until stopping value has
     been reached or partion has been exited.
     
@@ -199,6 +207,7 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     while right_idxs[part_i] < num_idists and node[0] <= stopping_val and node[0] <= idist_max:
         dist_node = np.sqrt(np.sum((dat[node[1]][node[2]] - query_pt)**2))
         _add_neighbor(knn_heap, K_, node, dist_node)
+        visited_count[part_i] = (visited_count[part_i][0], visited_count[part_i][1] + 1)
         right_idxs[part_i] += 1
         if right_idxs[part_i] < num_idists:
             node = idists[right_idxs[part_i]]
@@ -207,7 +216,6 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     if right_idxs[part_i] >= num_idists or node[0] > idist_max: 
         right_idxs[part_i] = None
 
-_neighbors_visited = 0
 def _add_neighbor(knn_heap, K_, node, dist_node):
     """Maintain a heap of the K_ closest neighbors
     """
