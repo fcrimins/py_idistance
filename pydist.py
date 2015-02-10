@@ -21,7 +21,7 @@ def main(argv):
     for f in ls:
         p = os.path.join(model_dir, f)
         dat.append(np.load(p))
-        print('{} =\n{}\n'.format(p, dat[-1]))
+        #print('{} =\n{}\n'.format(p, dat[-1]))
         
     bplus_tree = idist.bplus_tree(dat)
         

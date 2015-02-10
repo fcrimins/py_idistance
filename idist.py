@@ -11,23 +11,23 @@ def bplus_tree(dat):
     
     ref_pts = _reference_points(maxs, mins)
     
+    t0 = time.clock()
     idists, partition_dist_max = _idistance_index(dat, ref_pts, C_)
+    time_index = time.clock() - t0
     
     time_idist = 0.0
     time_seq = 0.0
     neighbors_idist = 0
     neighbors_seq = 0
-    iters = 0
+    niters = 0
     
     for mat in dat:
         for j in xrange(mat.shape[0]):
-            iters += 1
-    
             #query_pt = np.array([0.0, 0.0])
             #query_pt = dat[0][0]
             query_pt = mat[j,:]
             query_pt = np.copy(query_pt)
-            query_pt += [0.2, -0.1]
+            #query_pt += [0.2, -0.1]
     
             K_ = 5
             
@@ -45,12 +45,22 @@ def bplus_tree(dat):
             time_seq += time.clock() - t0
             neighbors_seq += globals()['_neighbors_visited']
             
-            print('KNN EQUAL {}? - {}'.format(query_pt, knn.sort() == knn_seq.sort()))
+            knn.sort()
+            knn_seq.sort()
             if knn != knn_seq:
+                print('KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_seq, niters))
                 breakpt = None
 
+            niters += 1
+#             if niters > 5:
+#                 break
+#     
+#         if niters > 5:
+#             break
+
+    print('indexation time (s): {}'.format(time_index))
     print('times (s): {}/{} = {}'.format(time_idist, time_seq, time_idist/time_seq))
-    print('neighbors (per iter) = {}/{} = {}'.format(float(neighbors_idist) / iters, float(neighbors_seq) / iters, float(neighbors_idist) / neighbors_seq))
+    print('neighbors (per iter) = {}/{} = {}'.format(float(neighbors_idist) / niters, float(neighbors_seq) / niters, float(neighbors_idist) / neighbors_seq))
     
     return 0
 
@@ -69,7 +79,11 @@ def _knn_search_sequential(dat, query_pt, K_):
 
 def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max):
 
-    radius = C_ / 50.0 # e.g. 0.2, R_ (initial radius to search)
+    radius = 0.2 # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
+    if 'radius_printed' not in globals():
+        print('radius = {}'.format(radius))
+        print('C = {}'.format(C_))
+        globals()['radius_printed'] = None
     radius_increment = radius
     # @TODO: initalize radius to a fraction of C_; use some empirical tests to figure out optimal
     
@@ -218,13 +232,10 @@ def _idistance_index(dat, ref_pts, C_):
     from r_i to point j.  Also returns the distance to each reference point's farthest
     point along with its index.
     """
-    idists = [] # @TODO: not sure this variable is necessary 
     sorted_idists = []
     partition_dist_max = [0.0] * len(ref_pts)
-    partition_dist_max_idx = [None] * len(ref_pts) # @TODO: not sure this variable is necessary
     
     for i, mat in enumerate(dat): # for each data file matrix
-        idists.append([])
 
         for j in xrange(mat.shape[0]): # for each row/point
             
@@ -239,12 +250,10 @@ def _idistance_index(dat, ref_pts, C_):
             
             # @TODO: is roundOff needed like it is in the C++ code?
             idist = minr * C_ + ref_dist
-            idists[-1].append(idist)
             sorted_idists.append((idist, i, j))
             
             if ref_dist > partition_dist_max[minr]:
                 partition_dist_max[minr] = ref_dist
-                partition_dist_max_idx[minr] = (i, j)
         
     # convert idists into a sortable array so that we can perform binary search for
     # a query point with its iDistance rather than searching a B+ tree (given 4e6
