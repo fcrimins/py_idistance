@@ -12,7 +12,7 @@ def bplus_tree(dat, iradius, K_):
     ref_pts = _reference_points(maxs, mins)
     
     t0 = time.clock()
-    idists, partition_dist_max = _idistance_index(dat, ref_pts, C_)
+    idists, partition_dist_max, partition_point_counts = _idistance_index(dat, ref_pts, C_)
     time_index = time.clock() - t0
     
     time_idist = 0.0
@@ -36,7 +36,7 @@ def bplus_tree(dat, iradius, K_):
             t0 = time.clock()
             globals()['_neighbors_visited'] = 0
             #print('KNN SEARCH {}'.format(query_pt))
-            knn = _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius)
+            knn = _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts)
             time_idist += time.clock() - t0
             neighbors_idist += globals()['_neighbors_visited']
             
@@ -80,7 +80,7 @@ def _knn_search_sequential(dat, query_pt, K_):
     return knn_heap            
 
 
-def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius):
+def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts):
     
     num_points = sum(m.shape[0] for m in dat)
 
@@ -104,6 +104,16 @@ def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max
     
     visited_count = [(0, 0)] * len(ref_pts)
     
+    # no need to calculate distance to every reference point every iteration
+    ref_pt_dists = []
+    for i, rp in enumerate(ref_pts):
+        
+        # calculate distance from query point to partition i
+        d_rp = np.sqrt(np.sum((rp - query_pt)**2))
+        
+        # calculate the iDistance/index of the query point (for the current ref point)
+        ref_pt_dists.append((d_rp, i * C_ + d_rp))
+    
     # -knn_heap[0][0] is the distance to the farthest point in the current knn, so as long
     # as radius is smaller than that, there could still be points outside of radius that are closer
     while radius < C_ and (len(knn_heap) < K_ or radius < -knn_heap[0][0]):
@@ -112,24 +122,20 @@ def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max
         radius += radius_increment
 
         #print('RADIUS = {}'.format(radius))
-        _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count)
+        _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count, ref_pt_dists)
 
     if 'stop_printing' not in globals():
         print('final radius: {} ({}x)'.format(radius, int(radius / radius_increment + 0.5)))
         for i, cnt in enumerate(visited_count):
-            print('    reference point {} visits: {}'.format(i, cnt))
+            print('    reference point {} visits: {} / {}'.format(i, cnt, partition_point_counts[i]))
     return knn_heap
 
 
-def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count):
+def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count, ref_pt_dists):
 
     for i, rp in enumerate(ref_pts):
-    
-        # calc distance from query point to partition i
-        d_rp = np.sqrt(np.sum((rp - query_pt)**2))
         
-        # calculate the iDistance/index of the query point (for the current ref point)
-        q_idist = i * C_ + d_rp
+        d_rp, q_idist = ref_pt_dists[i]
         
         if not partition_checked[i]:
             
@@ -247,6 +253,7 @@ def _idistance_index(dat, ref_pts, C_):
     """
     sorted_idists = []
     partition_dist_max = [0.0] * len(ref_pts)
+    partition_point_counts = [0] * len(ref_pts)
     
     for i, mat in enumerate(dat): # for each data file matrix
 
@@ -265,6 +272,7 @@ def _idistance_index(dat, ref_pts, C_):
             idist = minr * C_ + ref_dist
             sorted_idists.append((idist, i, j))
             
+            partition_point_counts[minr] += 1
             if ref_dist > partition_dist_max[minr]:
                 partition_dist_max[minr] = ref_dist
         
@@ -274,7 +282,7 @@ def _idistance_index(dat, ref_pts, C_):
     # latter, 2*50=100 comparisons given 50 dimensions)
     sorted_idists.sort()
 
-    return sorted_idists, partition_dist_max
+    return sorted_idists, partition_dist_max, partition_point_counts
 
 
 def _reference_points(mins, maxs):
@@ -301,7 +309,7 @@ def _reference_points(mins, maxs):
         ref_pts[i * 2    ][i] = mins[i]
         ref_pts[i * 2 + 1][i] = maxs[i]
         
-    return ref_pts
+    return ref_pts # [ : len(ref_pts) / 2]
 
 
 def _calculate_c(dat):
