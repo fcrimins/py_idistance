@@ -5,7 +5,7 @@ import heapq
 import time
 
 
-def bplus_tree(dat):
+def bplus_tree(dat, iradius):
     
     C_, maxs, mins = _calculate_c(dat)
     
@@ -34,7 +34,7 @@ def bplus_tree(dat):
             t0 = time.clock()
             globals()['_neighbors_visited'] = 0
             #print('KNN SEARCH {}'.format(query_pt))
-            knn = _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max)
+            knn = _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius)
             time_idist += time.clock() - t0
             neighbors_idist += globals()['_neighbors_visited']
             
@@ -78,9 +78,9 @@ def _knn_search_sequential(dat, query_pt, K_):
     return knn_heap            
 
 
-def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max):
+def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius):
 
-    radius = 0.2 # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
+    radius = (iradius if iradius else 0.2) # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
     if 'radius_printed' not in globals():
         print('radius = {}'.format(radius))
         print('C = {}'.format(C_))
