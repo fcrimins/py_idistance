@@ -1,6 +1,9 @@
 // idist.c
 
-#include "Python.h"
+// #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
+#include <Python.h>
+#include <numpy/ndarraytypes.h>
 
 // sequential search function
 static PyObject *
@@ -25,8 +28,51 @@ knn_search_sequential(PyObject *self, PyObject *args)
 	Py_ssize_t i;
 	Py_ssize_t n = PySequence_Fast_GET_SIZE(dat);
 	for(i = 0; i < n; ++i) {
-		PyObject *mat = PySequence_Fast_GET_ITEM(dat, i);
+		PyObject *aryobj = PySequence_Fast_GET_ITEM(dat, i);
+		PyArrayObject *mat = (PyArrayObject *)aryobj;
 
+/*
+
+		  npy_intp dims[3]; // PyArray_AsCArray is for ndim <= 3
+		  int typenum;
+		  int i, nd;
+		  PyObject *o1;
+		  double *d1;
+		  PyArray_Descr *descr;
+
+		  if (PyArg_ParseTuple(args, "O:print_a1", &o1) < 0) {
+		    PyErr_SetString( PyExc_TypeError,  "bad arguments");
+		    return NULL;
+		  }
+
+		  nd = PyArray_NDIM(o1);
+		  typenum = NPY_DOUBLE;
+		  descr = PyArray_DescrFromType(typenum);
+		  if (PyArray_AsCArray(&o1, (void *)&d1, dims, nd, descr) < 0){
+		    PyErr_SetString( PyExc_TypeError,  "error on getting c array");
+		    return NULL;
+		  }
+
+		  printf("[%d] ", dims[0]);
+		  for (i = 0; i < dims[0]; ++i){
+		    printf("%.2f ", d1[i]);
+		  }
+		  printf("\n");
+
+		  printf("if ( ((PyArrayObject *)o1)->data == d1): ");
+		  if ( ((PyArrayObject *)o1)->data == (char *)d1){
+		    printf("True\n");
+		  }else{
+		    printf("False\n");
+		  }
+
+		  if (PyArray_Free(o1, (void *)&d1) < 0){
+		    PyErr_SetString( PyExc_TypeError,  "PyArray_Free fail");
+		    return NULL;
+		  }
+
+*/
+// @TODO: numpy c api
 
 	}
 

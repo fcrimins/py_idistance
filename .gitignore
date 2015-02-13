@@ -2,3 +2,4 @@
 *.stackdump
 *.stats
 build/
+.ipynb_checkpoints/
