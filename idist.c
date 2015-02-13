@@ -4,10 +4,34 @@
 
 // sequential search function
 static PyObject *
-knn_search_sequential(PyObject *self, PyObject *dat, PyObject *query_pt, PyObject *K_)
+knn_search_sequential(PyObject *self, PyObject *args)
 {
+	PyObject *dat;
+	PyObject *query_pt;
+	unsigned int K_;
 
-    return Py_BuildValue("s", "hello, world!");
+	if (!PyArg_ParseTuple(args, "OOI:knn_search_sequential", &dat, &query_pt, &K_)) {
+		return NULL;
+	}
+
+	char str[256];
+	sprintf(str, "hello K_ = %u", K_);
+
+	dat = PySequence_Fast(dat, "dat must be a sequence"); // NEW REFERENCE
+	if (!dat) {
+		return NULL;
+	}
+
+	Py_ssize_t i;
+	Py_ssize_t n = PySequence_Fast_GET_SIZE(dat);
+	for(i = 0; i < n; ++i) {
+		PyObject *mat = PySequence_Fast_GET_ITEM(dat, i);
+
+
+	}
+
+	Py_DECREF(dat);
+    return Py_BuildValue("s", str);
 
 }
 
