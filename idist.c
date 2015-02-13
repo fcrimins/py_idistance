@@ -1,9 +1,8 @@
 // idist.c
 
-// #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-
 #include <Python.h>
 #include <numpy/ndarraytypes.h>
+#include <numpy/ndarrayobject.h>
 
 // sequential search function
 static PyObject *
@@ -28,8 +27,37 @@ knn_search_sequential(PyObject *self, PyObject *args)
 	Py_ssize_t i;
 	Py_ssize_t n = PySequence_Fast_GET_SIZE(dat);
 	for(i = 0; i < n; ++i) {
-		PyObject *aryobj = PySequence_Fast_GET_ITEM(dat, i);
-		PyArrayObject *mat = (PyArrayObject *)aryobj;
+		PyObject *pyary = PySequence_Fast_GET_ITEM(dat, i);
+		//PyArrayObject *mat = (PyArrayObject *)pyary;
+
+		// http://mail.scipy.org/pipermail/numpy-discussion/2009-September/045367.html
+		int nd = PyArray_NDIM(pyary);
+
+		// http://stackoverflow.com/questions/2420317/why-does-my-hello-world-python-c-module-work-correctly-in-everything-but-idle
+		//fprintf(stderr, "ndim = %d\n", ndim);
+
+		int typenum = NPY_DOUBLE; // requires the numpy array to be constructed in python with explicit dtype='double'
+		PyArray_Descr *descr = PyArray_DescrFromType(typenum);
+
+		double **cary;
+		npy_intp dims[3]; // PyArray_AsCArray is for ndim <= 3
+
+//		if (PyArray_AsCArray(&pyary, (void *)&cary, dims, nd, descr) < 0) {
+//			Py_DECREF(dat);
+//			PyErr_SetString(PyExc_TypeError,  "error on getting c array");
+//			return NULL;
+//		}
+
+		//sprintf(str, "hello K_/nd = %u/%d", K_, nd);
+
+
+
+
+
+// @TODO: look at cython and typedmemoryviews...this is ridiculous
+
+
+
 
 /*
 
