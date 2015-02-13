@@ -1,6 +1,12 @@
-from distutils.core import setup
-from Cython.Build import cythonize
+from distutils.core import setup, Extension
+#from Cython.Build import cythonize
+
+#setup(
+    #ext_modules=cythonize("idist.pyx"),
+#)
 
 setup(
-    ext_modules=cythonize("idist.pyx"),
+    ext_modules = [
+        Extension("cIdist", sources=["idist.c"]),
+    ],
 )

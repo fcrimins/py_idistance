@@ -60,7 +60,7 @@ def bplus_tree(dat, iradius, K_):
                 break
         if niters > 100:
             break
-
+        
     print('indexation time (s): {}'.format(time_index))
     print('times (s): {}/{} = {}'.format(time_idist, time_seq, time_idist/time_seq))
     print('neighbors (per iter): {}/{} = {}'.format(float(neighbors_idist) / niters, float(neighbors_seq) / niters, float(neighbors_idist) / neighbors_seq))
