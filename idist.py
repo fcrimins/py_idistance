@@ -3,6 +3,7 @@ import numpy as np
 import bisect
 import heapq
 import time
+import idist_cython
 
 
 def bplus_tree(dat, iradius, K_):
@@ -17,8 +18,10 @@ def bplus_tree(dat, iradius, K_):
     
     time_idist = 0.0
     time_seq = 0.0
+    time_seq_cy = 0.0
     neighbors_idist = 0
     neighbors_seq = 0
+    neighbors_seq_cy = 0
     niters = 0
     
     if K_ is None:
@@ -42,16 +45,23 @@ def bplus_tree(dat, iradius, K_):
             
             t0 = time.clock()
             globals()['_neighbors_visited'] = 0
-            #print('KNN SEARCH SEQUENTIAL {}'.format(query_pt))
             knn_seq = _knn_search_sequential(dat, query_pt, K_)
             time_seq += time.clock() - t0
             neighbors_seq += globals()['_neighbors_visited']
             
+            t0 = time.clock()
+            idist_cython._neighbors_visited = 0
+            knn_seq_cy = idist_cython.knn_search_sequential(dat, query_pt, K_)
+            time_seq_cy += time.clock() - t0
+            neighbors_seq_cy += idist_cython._neighbors_visited
+            
             knn.sort()
             knn_seq.sort()
+            knn_seq_cy.sort()
             if knn != knn_seq:
                 print('KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_seq, niters))
-                breakpt = None
+            if knn != knn_seq_cy:
+                print('CYTHON KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_seq_cy, niters))
 
             niters += 1
             if niters > 1:
@@ -62,8 +72,8 @@ def bplus_tree(dat, iradius, K_):
             break
         
     print('indexation time (s): {}'.format(time_index))
-    print('times (s): {}/{} = {}'.format(time_idist, time_seq, time_idist/time_seq))
-    print('neighbors (per iter): {}/{} = {}'.format(float(neighbors_idist) / niters, float(neighbors_seq) / niters, float(neighbors_idist) / neighbors_seq))
+    print('times (s): {}/{}/{} = {}/{}'.format(time_idist, time_seq, time_seq_cy, time_idist/time_seq, time_seq/time_seq_cy))
+    print('neighbors (per iter): {}/{}/{} = {}/{}'.format(float(neighbors_idist) / niters, float(neighbors_seq) / niters, float(neighbors_seq_cy) / niters, float(neighbors_idist) / neighbors_seq, float(neighbors_seq) / neighbors_seq_cy))
     
     return 0
 

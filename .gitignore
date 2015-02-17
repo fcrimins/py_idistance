@@ -3,3 +3,4 @@
 *.stats
 build/
 .ipynb_checkpoints/
+idist_cython.c
