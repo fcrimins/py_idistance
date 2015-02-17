@@ -2,7 +2,7 @@ import numpy as np
 import heapq
 
 
-def knn_search_sequential(dat, query_pt, K_):
+def knn_search_sequential(dat, query_pt, int K_):
     """Search sequentially through every point in dat for query_pt's K_ nearest
     neighbors.
     """
@@ -14,7 +14,7 @@ def knn_search_sequential(dat, query_pt, K_):
     return knn_heap            
 
 _neighbors_visited = 0
-def _add_neighbor(knn_heap, K_, node, dist_node):
+cdef _add_neighbor(knn_heap, int K_, node, dist_node):
     """Maintain a heap of the K_ closest neighbors
     """
     globals()['_neighbors_visited'] += 1
