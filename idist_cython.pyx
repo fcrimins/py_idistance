@@ -1,20 +1,24 @@
 import numpy as np
 import heapq
+from libc.math cimport sqrt import # http://docs.cython.org/src/tutorial/external.html
 
 
 def knn_search_sequential(dat, query_pt, int K_):
     """Search sequentially through every point in dat for query_pt's K_ nearest
     neighbors.
     """
+    cdef double distj
     knn_heap = []
     for i, mat in enumerate(dat):
-        dists = np.sqrt(np.sum((mat - query_pt)**2, axis=1))
+        sqdists = np.sum((mat - query_pt)**2, axis=1)
         for j in xrange(mat.shape[0]): # for each row/point
-            _add_neighbor(knn_heap, K_, (None, i, j), dists[j])
+            distj = sqrt(sqdists[j])
+            _add_neighbor(knn_heap, K_, (None, i, j), distj)
     return knn_heap            
 
+
 _neighbors_visited = 0
-cdef _add_neighbor(knn_heap, int K_, node, dist_node):
+cdef void _add_neighbor(knn_heap, int K_, node, double dist_node):
     """Maintain a heap of the K_ closest neighbors
     """
     globals()['_neighbors_visited'] += 1

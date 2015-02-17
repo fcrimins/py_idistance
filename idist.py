@@ -3,6 +3,10 @@ import numpy as np
 import bisect
 import heapq
 import time
+
+# http://docs.cython.org/src/tutorial/cython_tutorial.html#pyximport-cython-compilation-the-easy-way
+import pyximport
+pyximport.install()
 import idist_cython
 
 
@@ -66,9 +70,9 @@ def bplus_tree(dat, iradius, K_):
             niters += 1
             if niters > 1:
                 globals()['stop_printing'] = None
-            if niters > 100:
+            if niters > 10:
                 break
-        if niters > 100:
+        if niters > 10:
             break
         
     print('indexation time (s): {}'.format(time_index))
