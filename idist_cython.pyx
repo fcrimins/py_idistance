@@ -11,7 +11,7 @@ cdef double euclidean_distance(double[::1] x1,
                                double[::1] x2):
     """https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/"""
     cdef double tmp, d
-    cdef np.intp_t i, N
+    cdef np.intp_t i, N # why not just use int? https://github.com/scikit-learn/scikit-learn/pull/1458
 
     d = 0
     N = x1.shape[0]
@@ -29,23 +29,37 @@ def knn_search_sequential(dat, query_pt, int K_):
     neighbors.
     """
     cdef double distj
+    cdef np.intp_t i, j
+    cdef double[:, ::1] X
+    
     knn_heap = []
     for i, mat in enumerate(dat):
-        #sqdists = np.sum((mat - query_pt)**2, axis=1)
-        for j in xrange(mat.shape[0]): # for each row/point
-            distj = euclidean_distance(query_pt, mat[j,:])
-            _add_neighbor(knn_heap, K_, (None, i, j), distj)
+        
+        X = mat
+        
+        for j in xrange(X.shape[0]): # for each row/point
+            distj = euclidean_distance(query_pt, X[j])
+            _add_neighbor(knn_heap, K_, i, j, distj)
+            
     return knn_heap            
 
 
+cdef struct heap_node_t:
+    double neg_dist
+    np.intp_t mat_idx
+    np.intp_t row_idx
+
 # @TODO: use cpdef here? "The directive cpdef makes two versions of the method available; one fast for use from Cython and one slower for use from Python."
 _neighbors_visited = 0
-cdef void _add_neighbor(knn_heap, int K_, node, double dist_node):
+cdef void _add_neighbor(knn_heap, int K_, np.intp_t mat_idx, np.intp_t row_idx, double dist_node):
     """Maintain a heap of the K_ closest neighbors
     """
     globals()['_neighbors_visited'] += 1
     # heapq maintains a "min heap" so we store by -dist
-    heap_node = (-dist_node, node[1], node[2])
+    cdef heap_node_t heap_node
+    heap_node.neg_dist = -dist_node
+    heap_node.mat_idx = mat_idx
+    heap_node.row_idx
     #print('_add_neighbor: {}'.format(heap_node))
     
     # @TODO: only add neighbor if it isn't in the same cross validation bucket as the query point
