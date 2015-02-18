@@ -2,6 +2,26 @@ import numpy as np
 cimport numpy as np
 import heapq
 from libc.math cimport sqrt # http://docs.cython.org/src/tutorial/external.html
+cimport cython
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef double euclidean_distance(double[::1] x1,
+                               double[::1] x2):
+    """https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/"""
+    cdef double tmp, d
+    cdef np.intp_t i, N
+
+    d = 0
+    N = x1.shape[0]
+    # assume x2 has the same shape as x1.  This could be dangerous!
+
+    for i in range(N):
+        tmp = x1[i] - x2[i]
+        d += tmp * tmp
+
+    return sqrt(d)
 
 
 def knn_search_sequential(dat, query_pt, int K_):
@@ -11,9 +31,9 @@ def knn_search_sequential(dat, query_pt, int K_):
     cdef double distj
     knn_heap = []
     for i, mat in enumerate(dat):
-        sqdists = np.sum((mat - query_pt)**2, axis=1)
+        #sqdists = np.sum((mat - query_pt)**2, axis=1)
         for j in xrange(mat.shape[0]): # for each row/point
-            distj = sqrt(sqdists[j])
+            distj = euclidean_distance(query_pt, mat[j,:])
             _add_neighbor(knn_heap, K_, (None, i, j), distj)
     return knn_heap            
 
