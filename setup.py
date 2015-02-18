@@ -2,7 +2,19 @@ from distutils.core import setup, Extension
 from Cython.Build import cythonize
 from numpy.distutils.misc_util import get_numpy_include_dirs
 
-extensions = cythonize("idist_cython.pyx")
+# import numpy as np
+# print("HEY HO 1: {}".format(np.get_include()))
+# print("HEY HO 2: {}".format(get_numpy_include_dirs()))
+
+# specifying include_path in this manner doesn't have any effect on the generated compiler command
+#extensions = cythonize("idist_cython.pyx", include_path=[np.get_include()])
+
+extensions = [
+        Extension("*", ["*.pyx"],
+                  include_dirs=get_numpy_include_dirs()),
+    ]
+                  
+extensions = cythonize(extensions)
 
 extensions.append(
     Extension("cIdist", sources=["idist.c"],

@@ -1,6 +1,7 @@
 import numpy as np
+cimport numpy as np
 import heapq
-from libc.math cimport sqrt import # http://docs.cython.org/src/tutorial/external.html
+from libc.math cimport sqrt # http://docs.cython.org/src/tutorial/external.html
 
 
 def knn_search_sequential(dat, query_pt, int K_):
@@ -17,6 +18,7 @@ def knn_search_sequential(dat, query_pt, int K_):
     return knn_heap            
 
 
+# @TODO: use cpdef here? "The directive cpdef makes two versions of the method available; one fast for use from Cython and one slower for use from Python."
 _neighbors_visited = 0
 cdef void _add_neighbor(knn_heap, int K_, node, double dist_node):
     """Maintain a heap of the K_ closest neighbors

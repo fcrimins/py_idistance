@@ -5,8 +5,9 @@ import heapq
 import time
 
 # http://docs.cython.org/src/tutorial/cython_tutorial.html#pyximport-cython-compilation-the-easy-way
-import pyximport
-pyximport.install()
+# can't use pyximport b/c compiling idist_cython requires numpy include directory 
+#import pyximport
+#pyximport.install()
 import idist_cython
 
 
