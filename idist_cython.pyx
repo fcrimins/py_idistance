@@ -44,11 +44,6 @@ def knn_search_sequential(dat, query_pt, int K_):
     return knn_heap            
 
 
-cdef struct heap_node_t:
-    double neg_dist
-    np.intp_t mat_idx
-    np.intp_t row_idx
-
 # @TODO: use cpdef here? "The directive cpdef makes two versions of the method available; one fast for use from Cython and one slower for use from Python."
 _neighbors_visited = 0
 cdef void _add_neighbor(knn_heap, int K_, np.intp_t mat_idx, np.intp_t row_idx, double dist_node):
@@ -56,10 +51,7 @@ cdef void _add_neighbor(knn_heap, int K_, np.intp_t mat_idx, np.intp_t row_idx, 
     """
     globals()['_neighbors_visited'] += 1
     # heapq maintains a "min heap" so we store by -dist
-    cdef heap_node_t heap_node
-    heap_node.neg_dist = -dist_node
-    heap_node.mat_idx = mat_idx
-    heap_node.row_idx
+    heap_node = (-dist_node, mat_idx, row_idx)
     #print('_add_neighbor: {}'.format(heap_node))
     
     # @TODO: only add neighbor if it isn't in the same cross validation bucket as the query point
