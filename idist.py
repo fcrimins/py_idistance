@@ -38,8 +38,8 @@ def bplus_tree(dat, iradius, K_):
     time_index_bt = time.clock() - t0
     
     t0 = time.clock()
-    #brute_tree = BallTree(dat[0], leaf_size=N_ + 1)
-    brute_tree = NearestNeighbors(n_neighbors=K_, algorithm='ball_tree').fit(dat[0])
+    brute_tree = BallTree(dat[0], leaf_size=N_ + 1)
+    #nbrs = NearestNeighbors(n_neighbors=K_, algorithm='ball_tree').fit(dat[0])
     time_index_brute = time.clock() - t0
     
     time_idist = 0.0
@@ -90,13 +90,14 @@ def bplus_tree(dat, iradius, K_):
             time_bt += time.clock() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
             
-            #brute_tree.reset_n_calls()
+            brute_tree.reset_n_calls()
             t0 = time.clock()
-            #dist_brute, idx_brute = brute_tree.query(query_pt, k=K_, return_distance=True)
-            dist_brute, idx_brute = brute_tree.kneighbors(query_pt)
+            dist_brute, idx_brute = brute_tree.query(query_pt, k=K_, return_distance=True)
+            #dist_brute, idx_brute = nbrs.kneighbors(query_pt)
             time_brute += time.clock() - t0
-            ndists_brute += dat[0].shape[0] #brute_tree.get_n_calls()
-
+            ndists_brute += brute_tree.get_n_calls()
+            #ndists_brute += dat[0].shape[0] # nbrs
+            
             def sk_2_knn(dist, idx):            
                 knn = []
                 for d, i in zip(dist[0,:], idx[0,:]):

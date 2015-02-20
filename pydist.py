@@ -12,9 +12,9 @@ def main(argv):
         raise ValueError('argv must be of length between 2 and 4 (argv = {}'.format(argv))
 
     model_dir = argv[1]
-    print('model_dir = {}\n'.format(model_dir))
+    print('model_dir = {}'.format(model_dir))
     ls = sorted(os.listdir(model_dir))
-    print('ls = {}\n'.format(ls))
+    print('ls = {}'.format(ls))
     
     dat = []
     for f in ls:
