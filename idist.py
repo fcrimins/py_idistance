@@ -3,7 +3,7 @@ import numpy as np
 import bisect
 import heapq
 import time
-from sklearn.neighbors import BallTree, NearestNeighbors
+from sklearn.neighbors import BallTree, NearestNeighbors, KDTree
 
 # http://docs.cython.org/src/tutorial/cython_tutorial.html#pyximport-cython-compilation-the-easy-way
 # can't use pyximport b/c compiling idist_cython requires numpy include directory 
@@ -131,13 +131,12 @@ def bplus_tree(dat, iradius, K_):
                 print('\nBrute KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn_brute))
 
             niters += 1
-            if niters > MAX_QUERIES:
+            if niters >= MAX_QUERIES:
                 break
-        if niters > MAX_QUERIES:
+        if niters >= MAX_QUERIES:
             break
         
-    print('\nniters: {}'.format(niters))
-    print('\nindexation time (idist, bt, brute): {:.4f}/{:.4f}/{:.4f}\n'.format(time_index, time_index_bt, time_index_brute))
+    print('indexation time (idist, bt, brute): {:.4f}/{:.4f}/{:.4f}\n'.format(time_index, time_index_bt, time_index_brute))
     print('absolute times per 1000 queries (seq, idist, seq_cy, bt, brute):  = {:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f}\n'.format(*(x * 1000 / niters for x in (time_seq, time_idist, time_seq_cy, time_bt, time_brute))))
     print('sequential relative times (seq base (s) {:.4f}) (idist, seq_cy, bt, brute):  = {:.4f}/{:.4f}/{:.4f}/{:.4f}\n'.format(time_seq, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq, time_brute/time_seq))
     print('neighbors (per iter, per N): {:.4f}/{:.4f}/{:.4f}/{:.4f}/{:.4f}'.format(float(ndists_seq) / niters / N_,
