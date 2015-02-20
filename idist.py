@@ -3,7 +3,7 @@ import numpy as np
 import bisect
 import heapq
 import time
-from sklearn.neighbors import BallTree
+from sklearn.neighbors import BallTree, NearestNeighbors
 
 # http://docs.cython.org/src/tutorial/cython_tutorial.html#pyximport-cython-compilation-the-easy-way
 # can't use pyximport b/c compiling idist_cython requires numpy include directory 
@@ -15,7 +15,16 @@ _ndists = None
 
 def bplus_tree(dat, iradius, K_):
     
+    if K_ is None:
+        K_ = 5
+
     C_, maxs, mins = _calculate_c(dat)
+    
+    print('C = {}'.format(C_))
+    print('k = {}'.format(K_))
+    print('D = {}'.format(dat[0].shape[1]))
+    N_ = sum(mat.shape[0] for mat in dat)
+    print('N = {}'.format(N_))
     
     ref_pts = _reference_points(maxs, mins)
     
@@ -28,26 +37,26 @@ def bplus_tree(dat, iradius, K_):
     ball_tree = BallTree(dat[0], leaf_size=15)
     time_index_bt = time.clock() - t0
     
+    t0 = time.clock()
+    nbrs = NearestNeighbors(n_neighbors=K_, algorithm='ball_tree').fit(dat[0]) # works but doesn't seem to use BallTree as it is the same speed as specifying algorithm='brute'
+    time_index_brute = time.clock() - t0
+    
     time_idist = 0.0
     time_seq = 0.0
     time_seq_cy = 0.0
     time_bt = 0.0
+    time_brute = 0.0
     ndists_idist = 0
     ndists_seq = 0
     ndists_seq_cy = 0
     ndists_bt = 0
+    ndists_brute = 0
     niters = 0
-    
-    if K_ is None:
-        K_ = 5
-    print('C = {}'.format(C_))
-    print('k = {}'.format(K_))
-    print('D = {}'.format(dat[0].shape[1]))
-    N_ = sum(mat.shape[0] for mat in dat)
-    print('N = {}'.format(N_))
 
     for mat in dat:
         for j in xrange(mat.shape[0]):
+            if niters > -1:
+                globals()['stop_printing'] = None
             #query_pt = np.array([0.0, 0.0])
             #query_pt = dat[0][0]
             query_pt = mat[j,:]
@@ -57,6 +66,7 @@ def bplus_tree(dat, iradius, K_):
             t0 = time.clock()
             globals()['_ndists'] = 0
             #print('KNN SEARCH {}'.format(query_pt))
+            # note that this fails for the 4th point (j=3) when using ../data/2 0.05 as cmd line args
             knn = _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts)
             time_idist += time.clock() - t0
             ndists_idist += globals()['_ndists']
@@ -79,37 +89,50 @@ def bplus_tree(dat, iradius, K_):
             time_bt += time.clock() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
             
-            knn_bt = []
-            for d, i in zip(dist_bt[0,:], idx_bt[0,:]):
-                knn_bt.append((-d, 0, i))
+            # nbrs.reset_n_calls()
+            t0 = time.clock()
+            dist_brute, idx_brute = nbrs.kneighbors(query_pt)
+            time_brute += time.clock() - t0
+            ndists_brute += dat[0].shape[0] # nbrs.get_n_calls()
+
+            def sk_2_knn(dist, idx):            
+                knn = []
+                for d, i in zip(dist[0,:], idx[0,:]):
+                    knn.append((-d, 0, i))
+                return knn
+            
+            knn_bt = sk_2_knn(dist_bt, idx_bt)
+            knn_brute = sk_2_knn(dist_brute, idx_brute)
             
             knn.sort()
             knn_seq.sort()
             knn_seq_cy.sort()
             knn_bt.sort()
+            knn_brute.sort()
             def neq_dists(knn0, knn1):
-                return any(np.fabs(d0 - d1) > C_ / 1e10 for ((d0, _, _), (d1, _, _)) in zip(knn0, knn1))
-            if neq_dists(knn, knn_seq):
-                print('KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_seq, niters))
-            if neq_dists(knn, knn_seq_cy):
-                print('CYTHON KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_seq_cy, niters))
-            if neq_dists(knn, knn_bt):
-                print('BallTree KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_bt, niters))
+                return any(np.fabs(d0 - d1) > C_ / 1e6 for ((d0, _, _), (d1, _, _)) in zip(knn0, knn1))
+            if neq_dists(knn_seq, knn):
+                print('\nKNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn))
+            if neq_dists(knn_seq, knn_seq_cy):
+                print('\nCYTHON KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn_seq_cy))
+            if neq_dists(knn_seq, knn_bt):
+                print('\nBallTree KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn_bt))
+            if neq_dists(knn_seq, knn_brute):
+                print('\nBrute KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn_brute))
 
             niters += 1
-            if niters > 1:
-                globals()['stop_printing'] = None
             if niters > 10:
                 break
         if niters > 10:
             break
         
-    print('indexation time (s): {}/{}'.format(time_index, time_index_bt))
-    print('sequential relative times (seq, idist, seq_cy, bt): {}/{}/{}/{} = {}/{}/{}'.format(time_seq, time_idist, time_seq_cy, time_bt, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq))
-    print('neighbors (per iter, per N): {}/{}/{}/{}'.format(float(ndists_seq) / niters / N_,
-                                                  float(ndists_idist) / niters / N_,
-                                                  float(ndists_seq_cy) / niters / N_,
-                                                  float(ndists_bt) / niters / N_))
+    print('indexation time (idist, bt, brute): {}/{}/{}'.format(time_index, time_index_bt, time_index_brute))
+    print('sequential relative times (seq, idist, seq_cy, bt, brute): seq base {} = {}/{}/{}/{}'.format(time_seq, time_idist, time_seq_cy, time_bt, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq, time_brute/time_seq))
+    print('neighbors (per iter, per N): {}/{}/{}/{}/{}'.format(float(ndists_seq) / niters / N_,
+                                                               float(ndists_idist) / niters / N_,
+                                                               float(ndists_seq_cy) / niters / N_,
+                                                               float(ndists_bt) / niters / N_,
+                                                               float(ndists_brute) / niters / N_))
     
     return 0
 
