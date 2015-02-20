@@ -11,6 +11,7 @@ from sklearn.neighbors import BallTree
 #pyximport.install()
 import idist_cython
 
+_ndists = None
 
 def bplus_tree(dat, iradius, K_):
     
@@ -31,15 +32,19 @@ def bplus_tree(dat, iradius, K_):
     time_seq = 0.0
     time_seq_cy = 0.0
     time_bt = 0.0
-    neighbors_idist = 0
-    neighbors_seq = 0
-    neighbors_seq_cy = 0
-    neighbors_bt = 0
+    ndists_idist = 0
+    ndists_seq = 0
+    ndists_seq_cy = 0
+    ndists_bt = 0
     niters = 0
     
     if K_ is None:
         K_ = 5
+    print('C = {}'.format(C_))
     print('k = {}'.format(K_))
+    print('D = {}'.format(dat[0].shape[1]))
+    N_ = sum(mat.shape[0] for mat in dat)
+    print('N = {}'.format(N_))
 
     for mat in dat:
         for j in xrange(mat.shape[0]):
@@ -50,28 +55,29 @@ def bplus_tree(dat, iradius, K_):
             #query_pt += [0.2, -0.1]
             
             t0 = time.clock()
-            globals()['_neighbors_visited'] = 0
+            globals()['_ndists'] = 0
             #print('KNN SEARCH {}'.format(query_pt))
-            knn = _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts)
+            knn = _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts)
             time_idist += time.clock() - t0
-            neighbors_idist += globals()['_neighbors_visited']
+            ndists_idist += globals()['_ndists']
             
             t0 = time.clock()
-            globals()['_neighbors_visited'] = 0
-            knn_seq = _knn_search_sequential(dat, query_pt, K_)
+            globals()['_ndists'] = 0
+            knn_seq = _knn_query_sequential(dat, query_pt, K_)
             time_seq += time.clock() - t0
-            neighbors_seq += globals()['_neighbors_visited']
+            ndists_seq += globals()['_ndists']
             
             t0 = time.clock()
-            idist_cython._neighbors_visited = 0
+            idist_cython._ndists2 = 0
             knn_seq_cy = idist_cython.knn_search_sequential(dat, query_pt, K_)
             time_seq_cy += time.clock() - t0
-            neighbors_seq_cy += idist_cython._neighbors_visited
+            ndists_seq_cy += idist_cython._ndists2
             
+            ball_tree.reset_n_calls()
             t0 = time.clock()
             dist_bt, idx_bt = ball_tree.query(query_pt, k=K_, return_distance=True)
             time_bt += time.clock() - t0
-            #neighbors_bt += idist_cython._neighbors_visited
+            ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
             
             knn_bt = []
             for d, i in zip(dist_bt[0,:], idx_bt[0,:]):
@@ -100,24 +106,30 @@ def bplus_tree(dat, iradius, K_):
         
     print('indexation time (s): {}/{}'.format(time_index, time_index_bt))
     print('sequential relative times (seq, idist, seq_cy, bt): {}/{}/{}/{} = {}/{}/{}'.format(time_seq, time_idist, time_seq_cy, time_bt, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq))
-    print('neighbors (per iter): {}/{}/{}'.format(float(neighbors_seq) / niters, float(neighbors_idist) / niters, float(neighbors_seq_cy) / niters))
+    print('neighbors (per iter, per N): {}/{}/{}/{}'.format(float(ndists_seq) / niters / N_,
+                                                  float(ndists_idist) / niters / N_,
+                                                  float(ndists_seq_cy) / niters / N_,
+                                                  float(ndists_bt) / niters / N_))
     
     return 0
 
 
-def _knn_search_sequential(dat, query_pt, K_):
+def _knn_query_sequential(dat, query_pt, K_):
     """Search sequentially through every point in dat for query_pt's K_ nearest
     neighbors.
     """
     knn_heap = []
     for i, mat in enumerate(dat):
-        dists = np.sqrt(np.sum((mat - query_pt)**2, axis=1))
+        globals()['_ndists'] += mat.shape[0]
+        sqdists = np.sum((mat - query_pt)**2, axis=1)
         for j in xrange(mat.shape[0]): # for each row/point
-            _add_neighbor(knn_heap, K_, (None, i, j), dists[j])
+            _add_neighbor(knn_heap, K_, (None, i, j), sqdists[j])
+    for i, nn in enumerate(knn_heap):
+        knn_heap[i] = (-np.sqrt(-nn[0]), nn[1], nn[2])
     return knn_heap            
 
 
-def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts):
+def _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts):
     
     num_points = sum(m.shape[0] for m in dat)
 
@@ -142,6 +154,7 @@ def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max
     visited_count = [(0, 0)] * len(ref_pts)
     
     # no need to calculate distance to every reference point every iteration
+    globals()['_ndists'] += len(ref_pts)
     ref_pt_dists = []
     for i, rp in enumerate(ref_pts):
         
@@ -165,6 +178,10 @@ def _knn_search_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max
         print('final radius: {} ({}x)'.format(radius, int(radius / radius_increment + 0.5)))
         for i, cnt in enumerate(visited_count):
             print('    reference point {} visits: {} / {}'.format(i, cnt, partition_point_counts[i]))
+            
+    for i, nn in enumerate(knn_heap):
+        knn_heap[i] = (-np.sqrt(-nn[0]), nn[1], nn[2])
+
     return knn_heap
 
 
@@ -221,8 +238,9 @@ def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, q
 
     # while not to stopping value and still inside partition
     while left_idxs[part_i] >= 0 and node[0] >= stopping_val and node[0] >= partition_offset:
-        dist_node = np.sqrt(np.sum((dat[node[1]][node[2]] - query_pt)**2))
-        _add_neighbor(knn_heap, K_, node, dist_node)
+        globals()['_ndists'] += 1
+        sqdist_node = np.sum((dat[node[1]][node[2]] - query_pt)**2)
+        _add_neighbor(knn_heap, K_, node, sqdist_node)
         visited_count[part_i] = (visited_count[part_i][0] + 1, visited_count[part_i][1])
         left_idxs[part_i] -= 1
         if left_idxs[part_i] >= 0:
@@ -253,8 +271,9 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
 
     # while not to stopping value and still inside partition
     while right_idxs[part_i] < num_idists and node[0] <= stopping_val and node[0] <= idist_max:
-        dist_node = np.sqrt(np.sum((dat[node[1]][node[2]] - query_pt)**2))
-        _add_neighbor(knn_heap, K_, node, dist_node)
+        globals()['_ndists'] += 1
+        sqdist_node = np.sum((dat[node[1]][node[2]] - query_pt)**2)
+        _add_neighbor(knn_heap, K_, node, sqdist_node)
         visited_count[part_i] = (visited_count[part_i][0], visited_count[part_i][1] + 1)
         right_idxs[part_i] += 1
         if right_idxs[part_i] < num_idists:
@@ -264,20 +283,19 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     if right_idxs[part_i] >= num_idists or node[0] > idist_max: 
         right_idxs[part_i] = None
 
-def _add_neighbor(knn_heap, K_, node, dist_node):
+def _add_neighbor(knn_heap, K_, node, sqdist_node):
     """Maintain a heap of the K_ closest neighbors
     """
-    globals()['_neighbors_visited'] += 1
     # heapq maintains a "min heap" so we store by -dist
-    heap_node = (-dist_node, node[1], node[2])
+    heap_node = (-sqdist_node, node[1], node[2])
     #print('_add_neighbor: {}'.format(heap_node))
     
     # @TODO: only add neighbor if it isn't in the same cross validation bucket as the query point
     if len(knn_heap) < K_:
         heapq.heappush(knn_heap, heap_node) # @TODO: does this perform an assignment?  does it matter?
     
-    # -knn_heap[0][0] is the distance to the farthest point in the current knn
-    elif dist_node < -knn_heap[0][0]:
+    # -knn_heap[0][0] is the (squared) distance to the farthest point in the current knn
+    elif sqdist_node < -knn_heap[0][0]:
         heapq.heappushpop(knn_heap, heap_node)
 
 
