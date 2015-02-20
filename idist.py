@@ -3,6 +3,7 @@ import numpy as np
 import bisect
 import heapq
 import time
+from sklearn.neighbors import BallTree
 
 # http://docs.cython.org/src/tutorial/cython_tutorial.html#pyximport-cython-compilation-the-easy-way
 # can't use pyximport b/c compiling idist_cython requires numpy include directory 
@@ -21,12 +22,19 @@ def bplus_tree(dat, iradius, K_):
     idists, partition_dist_max, partition_point_counts = _idistance_index(dat, ref_pts, C_)
     time_index = time.clock() - t0
     
+    assert(len(dat) == 1)
+    t0 = time.clock()
+    ball_tree = BallTree(dat[0], leaf_size=15)
+    time_index_bt = time.clock() - t0
+    
     time_idist = 0.0
     time_seq = 0.0
     time_seq_cy = 0.0
+    time_bt = 0.0
     neighbors_idist = 0
     neighbors_seq = 0
     neighbors_seq_cy = 0
+    neighbors_bt = 0
     niters = 0
     
     if K_ is None:
@@ -60,13 +68,27 @@ def bplus_tree(dat, iradius, K_):
             time_seq_cy += time.clock() - t0
             neighbors_seq_cy += idist_cython._neighbors_visited
             
+            t0 = time.clock()
+            dist_bt, idx_bt = ball_tree.query(query_pt, k=K_, return_distance=True)
+            time_bt += time.clock() - t0
+            #neighbors_bt += idist_cython._neighbors_visited
+            
+            knn_bt = []
+            for d, i in zip(dist_bt[0,:], idx_bt[0,:]):
+                knn_bt.append((-d, 0, i))
+            
             knn.sort()
             knn_seq.sort()
             knn_seq_cy.sort()
-            if knn != knn_seq:
+            knn_bt.sort()
+            def neq_dists(knn0, knn1):
+                return any(np.fabs(d0 - d1) > C_ / 1e10 for ((d0, _, _), (d1, _, _)) in zip(knn0, knn1))
+            if neq_dists(knn, knn_seq):
                 print('KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_seq, niters))
-            if knn != knn_seq_cy:
+            if neq_dists(knn, knn_seq_cy):
                 print('CYTHON KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_seq_cy, niters))
+            if neq_dists(knn, knn_bt):
+                print('BallTree KNN EQUAL {}? - {} (iter {})'.format(query_pt, knn == knn_bt, niters))
 
             niters += 1
             if niters > 1:
@@ -76,9 +98,9 @@ def bplus_tree(dat, iradius, K_):
         if niters > 10:
             break
         
-    print('indexation time (s): {}'.format(time_index))
-    print('times (s): {}/{}/{} = {}/{}'.format(time_idist, time_seq, time_seq_cy, time_idist/time_seq, time_seq/time_seq_cy))
-    print('neighbors (per iter): {}/{}/{} = {}/{}'.format(float(neighbors_idist) / niters, float(neighbors_seq) / niters, float(neighbors_seq_cy) / niters, float(neighbors_idist) / neighbors_seq, float(neighbors_seq) / neighbors_seq_cy))
+    print('indexation time (s): {}/{}'.format(time_index, time_index_bt))
+    print('sequential relative times (seq, idist, seq_cy, bt): {}/{}/{}/{} = {}/{}/{}'.format(time_seq, time_idist, time_seq_cy, time_bt, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq))
+    print('neighbors (per iter): {}/{}/{}'.format(float(neighbors_seq) / niters, float(neighbors_idist) / niters, float(neighbors_seq_cy) / niters))
     
     return 0
 
