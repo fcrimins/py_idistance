@@ -38,7 +38,8 @@ def bplus_tree(dat, iradius, K_):
     time_index_bt = time.clock() - t0
     
     t0 = time.clock()
-    nbrs = NearestNeighbors(n_neighbors=K_, algorithm='ball_tree').fit(dat[0]) # works but doesn't seem to use BallTree as it is the same speed as specifying algorithm='brute'
+    #brute_tree = BallTree(dat[0], leaf_size=N_ + 1)
+    brute_tree = NearestNeighbors(n_neighbors=K_, algorithm='ball_tree').fit(dat[0])
     time_index_brute = time.clock() - t0
     
     time_idist = 0.0
@@ -89,11 +90,12 @@ def bplus_tree(dat, iradius, K_):
             time_bt += time.clock() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
             
-            # nbrs.reset_n_calls()
+            #brute_tree.reset_n_calls()
             t0 = time.clock()
-            dist_brute, idx_brute = nbrs.kneighbors(query_pt)
+            #dist_brute, idx_brute = brute_tree.query(query_pt, k=K_, return_distance=True)
+            dist_brute, idx_brute = brute_tree.kneighbors(query_pt)
             time_brute += time.clock() - t0
-            ndists_brute += dat[0].shape[0] # nbrs.get_n_calls()
+            ndists_brute += dat[0].shape[0] #brute_tree.get_n_calls()
 
             def sk_2_knn(dist, idx):            
                 knn = []
@@ -126,9 +128,10 @@ def bplus_tree(dat, iradius, K_):
         if niters > 10:
             break
         
-    print('indexation time (idist, bt, brute): {}/{}/{}'.format(time_index, time_index_bt, time_index_brute))
-    print('sequential relative times (seq, idist, seq_cy, bt, brute): seq base {} = {}/{}/{}/{}'.format(time_seq, time_idist, time_seq_cy, time_bt, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq, time_brute/time_seq))
-    print('neighbors (per iter, per N): {}/{}/{}/{}/{}'.format(float(ndists_seq) / niters / N_,
+    print('\nindexation time (idist, bt, brute): {:.4f}/{:.4f}/{:.4f}\n'.format(time_index, time_index_bt, time_index_brute))
+    print('absolute times per 1000 queries (seq, idist, seq_cy, bt, brute):  = {:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f}\n'.format(*(x * 1000 / niters for x in (time_seq, time_idist, time_seq_cy, time_bt, time_brute))))
+    print('sequential relative times (seq base (s) {:.4f}) (idist, seq_cy, bt, brute):  = {:.4f}/{:.4f}/{:.4f}/{:.4f}\n'.format(time_seq, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq, time_brute/time_seq))
+    print('neighbors (per iter, per N): {:.4f}/{:.4f}/{:.4f}/{:.4f}/{:.4f}'.format(float(ndists_seq) / niters / N_,
                                                                float(ndists_idist) / niters / N_,
                                                                float(ndists_seq_cy) / niters / N_,
                                                                float(ndists_bt) / niters / N_,
@@ -159,8 +162,7 @@ def _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max,
     radius = (iradius if iradius else 0.2) # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
     #radius = C_ / num_points * np.power(K_, 1.0 / dat[0].shape[1]) * (iradius if iradius else 10.0)
     if 'radius_printed' not in globals():
-        print('radius = {}'.format(radius))
-        print('C = {}'.format(C_))
+        print('radius = {}\n'.format(radius))
         globals()['radius_printed'] = None
     radius_increment = radius
     # @TODO: initalize radius to a fraction of C_; use some empirical tests to figure out optimal
