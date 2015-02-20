@@ -37,10 +37,18 @@ def bplus_tree(dat, iradius, K_):
     ball_tree = BallTree(dat[0], leaf_size=15)
     time_index_bt = time.clock() - t0
     
+    OVERRIDE_BRUTE = True
     t0 = time.clock()
-    brute_tree = BallTree(dat[0], leaf_size=N_ + 1)
-    #nbrs = NearestNeighbors(n_neighbors=K_, algorithm='ball_tree').fit(dat[0])
+    if OVERRIDE_BRUTE:
+        brute_alg = 'override w/ BallTree' # 19 (per 1000 queries)
+        brute_tree = BallTree(dat[0], leaf_size=N_ + 1) # i.e. use BallTree w/ a huge leaf_size instead
+    else:
+        brute_alg = 'brute' # ball_tree 36.4, brute 68.5 (per 1000 queries)
+        nbrs = NearestNeighbors(n_neighbors=K_, algorithm=brute_alg).fit(dat[0])
+    print('brute_alg: {}'.format(brute_alg))
     time_index_brute = time.clock() - t0
+    
+    MAX_QUERIES = 10
     
     time_idist = 0.0
     time_seq = 0.0
@@ -90,13 +98,12 @@ def bplus_tree(dat, iradius, K_):
             time_bt += time.clock() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
             
-            brute_tree.reset_n_calls()
+            if OVERRIDE_BRUTE: brute_tree.reset_n_calls()
             t0 = time.clock()
-            dist_brute, idx_brute = brute_tree.query(query_pt, k=K_, return_distance=True)
-            #dist_brute, idx_brute = nbrs.kneighbors(query_pt)
+            dist_brute, idx_brute = (brute_tree.query(query_pt, k=K_, return_distance=True) if OVERRIDE_BRUTE else
+                                     nbrs.kneighbors(query_pt))
             time_brute += time.clock() - t0
-            ndists_brute += brute_tree.get_n_calls()
-            #ndists_brute += dat[0].shape[0] # nbrs
+            ndists_brute += (brute_tree.get_n_calls() if OVERRIDE_BRUTE else dat[0].shape[0])
             
             def sk_2_knn(dist, idx):            
                 knn = []
@@ -124,11 +131,12 @@ def bplus_tree(dat, iradius, K_):
                 print('\nBrute KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn_brute))
 
             niters += 1
-            if niters > 10:
+            if niters > MAX_QUERIES:
                 break
-        if niters > 10:
+        if niters > MAX_QUERIES:
             break
         
+    print('\nniters: {}'.format(niters))
     print('\nindexation time (idist, bt, brute): {:.4f}/{:.4f}/{:.4f}\n'.format(time_index, time_index_bt, time_index_brute))
     print('absolute times per 1000 queries (seq, idist, seq_cy, bt, brute):  = {:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f}\n'.format(*(x * 1000 / niters for x in (time_seq, time_idist, time_seq_cy, time_bt, time_brute))))
     print('sequential relative times (seq base (s) {:.4f}) (idist, seq_cy, bt, brute):  = {:.4f}/{:.4f}/{:.4f}/{:.4f}\n'.format(time_seq, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq, time_brute/time_seq))
