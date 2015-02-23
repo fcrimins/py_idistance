@@ -37,13 +37,15 @@ def bplus_tree(dat, iradius, K_):
     ball_tree = BallTree(dat[0], leaf_size=15)
     time_index_bt = time.clock() - t0
     
+    # code: https://github.com/jakevdp/BinaryTree/blob/master/binary_tree.pxi (e.g. get_n_calls)
     OVERRIDE_BRUTE = True
     t0 = time.clock()
     if OVERRIDE_BRUTE:
-        brute_alg = 'override w/ BallTree' # 19 (per 1000 queries)
-        brute_tree = BallTree(dat[0], leaf_size=N_ + 1) # i.e. use BallTree w/ a huge leaf_size instead
+        typ = BallTree
+        brute_alg = 'override w/ {}'.format(typ) # BallTree_and_KDTree(N+1)=19 (per 1000 queries), KDTree(15)=70
+        brute_tree = typ(dat[0], leaf_size=N_ + 1) # i.e. use BallTree w/ a huge leaf_size instead
     else:
-        brute_alg = 'brute' # ball_tree 36.4, brute 68.5 (per 1000 queries)
+        brute_alg = 'brute' # ball_tree=36.4, brute=68.5 (per 1000 queries)
         nbrs = NearestNeighbors(n_neighbors=K_, algorithm=brute_alg).fit(dat[0])
     print('brute_alg: {}'.format(brute_alg))
     time_index_brute = time.clock() - t0
@@ -97,6 +99,7 @@ def bplus_tree(dat, iradius, K_):
             dist_bt, idx_bt = ball_tree.query(query_pt, k=K_, return_distance=True)
             time_bt += time.clock() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
+            print('ball_tree(trims, leaves, splits) = {}'.format(ball_tree.get_tree_stats()))
             
             if OVERRIDE_BRUTE: brute_tree.reset_n_calls()
             t0 = time.clock()
@@ -104,6 +107,8 @@ def bplus_tree(dat, iradius, K_):
                                      nbrs.kneighbors(query_pt))
             time_brute += time.clock() - t0
             ndists_brute += (brute_tree.get_n_calls() if OVERRIDE_BRUTE else dat[0].shape[0])
+            if OVERRIDE_BRUTE:
+                print('brute_tree(trims, leaves, splits) = {}'.format(brute_tree.get_tree_stats()))
             
             def sk_2_knn(dist, idx):            
                 knn = []
@@ -136,10 +141,21 @@ def bplus_tree(dat, iradius, K_):
         if niters >= MAX_QUERIES:
             break
         
-    print('indexation time (idist, bt, brute): {:.4f}/{:.4f}/{:.4f}\n'.format(time_index, time_index_bt, time_index_brute))
-    print('absolute times per 1000 queries (seq, idist, seq_cy, bt, brute):  = {:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f}\n'.format(*(x * 1000 / niters for x in (time_seq, time_idist, time_seq_cy, time_bt, time_brute))))
-    print('sequential relative times (seq base (s) {:.4f}) (idist, seq_cy, bt, brute):  = {:.4f}/{:.4f}/{:.4f}/{:.4f}\n'.format(time_seq, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq, time_brute/time_seq))
-    print('neighbors (per iter, per N): {:.4f}/{:.4f}/{:.4f}/{:.4f}/{:.4f}'.format(float(ndists_seq) / niters / N_,
+    # note correlated data in 50 dimensions is just like uncorrelated data in fewer dimensions
+    # so since i'm using uncorrelated 50-dimensional data for testing, that's really like using
+    # more dimensions than that given structured/correlated data
+    # i.e. take a football cloud aligned along a dimension (that's uncorrelated) and spin it so that
+    # it's diagonal (that's correlated)
+    # now undo that rotation and fewer dimensions are required
+    # this is the type of data that ball trees should help with b/c large parts of the space won't
+    # need to be encircled
+    # bottom line: 2 highly correlated dimensions really act like just a single dim (or maybe 1.1 dims)
+        
+    print('')
+    print('* indexation time (idist, bt, brute): {:.4f}/{:.4f}/{:.4f}'.format(time_index, time_index_bt, time_index_brute))
+    print('* absolute times per 1000 queries (seq, idist, seq_cy, bt, brute):  = {:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f}'.format(*(x * 1000 / niters for x in (time_seq, time_idist, time_seq_cy, time_bt, time_brute))))
+    print('* sequential relative times (seq base (s) {:.4f}) (idist, seq_cy, bt, brute):  = {:.4f}/{:.4f}/{:.4f}/{:.4f}'.format(time_seq, time_idist/time_seq, time_seq_cy/time_seq, time_bt/time_seq, time_brute/time_seq))
+    print('* neighbors (per iter, per N): {:.4f}/{:.4f}/{:.4f}/{:.4f}/{:.4f}'.format(float(ndists_seq) / niters / N_,
                                                                float(ndists_idist) / niters / N_,
                                                                float(ndists_seq_cy) / niters / N_,
                                                                float(ndists_bt) / niters / N_,
