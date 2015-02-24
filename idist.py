@@ -77,7 +77,6 @@ def bplus_tree(dat, iradius, K_):
             t0 = time.clock()
             globals()['_ndists'] = 0
             #print('KNN SEARCH {}'.format(query_pt))
-            # note that this fails for the 4th point (j=3) when using ../data/2 0.05 as cmd line args
             knn = _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts)
             time_idist += time.clock() - t0
             ndists_idist += globals()['_ndists']
@@ -127,7 +126,7 @@ def bplus_tree(dat, iradius, K_):
             def neq_dists(knn0, knn1):
                 return any(np.fabs(d0 - d1) > C_ / 1e6 for ((d0, _, _), (d1, _, _)) in zip(knn0, knn1))
             if neq_dists(knn_seq, knn):
-                print('\nKNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn))
+                print('\niDistance KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn))
             if neq_dists(knn_seq, knn_seq_cy):
                 print('\nCYTHON KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn_seq_cy))
             if neq_dists(knn_seq, knn_bt):
@@ -215,7 +214,7 @@ def _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max,
     
     # -knn_heap[0][0] is the distance to the farthest point in the current knn, so as long
     # as radius is smaller than that, there could still be points outside of radius that are closer
-    while radius < C_ and (len(knn_heap) < K_ or radius < -knn_heap[0][0]):
+    while radius < C_ and (len(knn_heap) < K_ or radius*radius < -knn_heap[0][0]):
         
         # no need to grow geometrically as search area is growing as the square of this already
         radius += radius_increment
