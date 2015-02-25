@@ -15,43 +15,59 @@ cimport cython
 # been copied at the bottom 
 #include "binary_tree.pxi"
 
-#from sklearn.neighbors cimport typedefs # cimport DTYPE_t, ITYPE_t, DITYPE_t # DOESN'T WORK AS THERE's NO typedefs.pxd FILE, i.e. source code is not included
-#from sklearn.neighbors.typedefs import DTYPE, ITYPE
+# DOESN'T WORK AS THERE's NO typedefs.pxd FILE, i.e. source code is not included, i.e.
+# these have been compiled into C, perhaps they'd be accessible with 'cdef extern'
+#from sklearn.neighbors cimport typedefs # cimport DTYPE_t, ITYPE_t, DITYPE_t
+ctypedef np.float64_t DTYPE_t  # WARNING: should match DTYPE in typedefs.pyx
+ctypedef np.intp_t ITYPE_t  # WARNING: should match ITYPE in typedefs.pyx
+#from sklearn.neighbors.typedefs import DTYPE, ITYPE # this works b/c these are Python types
+
 
 from sklearn.neighbors import dist_metrics
 
-
  
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef double reduced_euclidean_distance(double[::1] x1,
-                                       double[::1] x2):
-    """https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/"""
-    cdef double tmp, d
-    cdef np.intp_t i, N # why not just use int? https://github.com/scikit-learn/scikit-learn/pull/1458
+# @cython.boundscheck(False)
+# @cython.wraparound(False)
+# cdef double reduced_euclidean_distance(double[::1] x1,
+#                                        double[::1] x2):
+#     """https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/"""
+#     cdef double tmp, d
+#     cdef np.intp_t i, N # why not just use int? https://github.com/scikit-learn/scikit-learn/pull/1458
+#  
+#     d = 0
+#     N = x1.shape[0]
+#     # assume x2 has the same shape as x1.  This could be dangerous!
+#  
+#     for i in range(N):
+#         tmp = x1[i] - x2[i]
+#         d += tmp * tmp
+#  
+#     return d # sqrt(d) # i.e. "reduced"
+#  
  
-    d = 0
-    N = x1.shape[0]
-    # assume x2 has the same shape as x1.  This could be dangerous!
- 
-    for i in range(N):
-        tmp = x1[i] - x2[i]
+cdef inline DTYPE_t euclidean_rdist(DTYPE_t * x1, DTYPE_t * x2,
+                                    ITYPE_t size) except -1:
+    """Copied from sklearn.neighbors.dist_metrics.pxd."""
+    cdef DTYPE_t tmp, d=0
+    cdef np.intp_t j
+    for j in range(size):
+        tmp = x1[j] - x2[j]
         d += tmp * tmp
- 
-    return d # sqrt(d) # i.e. "reduced"
- 
+    return d
+
  
 _ndists2 = 0
  
 def knn_search_sequential(dat, query_pt, int K_):
     """Search sequentially through every point in dat for query_pt's K_ nearest
     neighbors.
+    Also: https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/
     """
-    cdef double distj
     cdef np.intp_t i, j
-    cdef double[:, ::1] X
-    
-    dist_metric = dist_metrics.EuclideanDistance()
+    cdef DTYPE_t[:, ::1] X
+    cdef DTYPE_t sqdistj
+    cdef ITYPE_t dim = dat[0].shape[1]
+    cdef DTYPE_t[::1] Q = query_pt 
      
     knn_heap = []
     for i, mat in enumerate(dat):
@@ -60,19 +76,18 @@ def knn_search_sequential(dat, query_pt, int K_):
         globals()['_ndists2'] += mat.shape[0]
          
         for j in xrange(X.shape[0]): # for each row/point
-            print(dir(dist_metric))
-            sqdistj = dist_metric.rdist(query_pt, X[j])
+            sqdistj = euclidean_rdist(&Q[0], &X[j, 0], dim)
             _add_neighbor(knn_heap, K_, i, j, sqdistj)
     
     # sqrt all of the reduced/squared distances to get Euclidean distances
     for i, nn in enumerate(knn_heap):
-        knn_heap[i] = (-dist_metric._rdist_to_dist(-nn[0]), nn[1], nn[2])
+        knn_heap[i] = (-sqrt(-nn[0]), nn[1], nn[2])
  
     return knn_heap
  
  
 # @TODO: use cpdef here? "The directive cpdef makes two versions of the method available; one fast for use from Cython and one slower for use from Python."
-cdef void _add_neighbor(knn_heap, int K_, np.intp_t mat_idx, np.intp_t row_idx, double sqdist_node):
+cdef void _add_neighbor(knn_heap, int K_, np.intp_t mat_idx, np.intp_t row_idx, DTYPE_t sqdist_node):
     """Maintain a heap of the K_ closest neighbors
     """
     # heapq maintains a "min heap" so we store by -dist
