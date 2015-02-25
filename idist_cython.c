@@ -1752,7 +1752,7 @@ static PyObject *__pyx_codeobj__19;
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cdef double reduced_euclidean_distance(double[::1] x1,             # <<<<<<<<<<<<<<
- *                                double[::1] x2):
+ *                                        double[::1] x2):
  *     """https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/"""
  */
 
@@ -1833,7 +1833,7 @@ static double __pyx_f_12idist_cython_reduced_euclidean_distance(__Pyx_memviewsli
  * @cython.boundscheck(False)
  * @cython.wraparound(False)
  * cdef double reduced_euclidean_distance(double[::1] x1,             # <<<<<<<<<<<<<<
- *                                double[::1] x2):
+ *                                        double[::1] x2):
  *     """https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/"""
  */
 

@@ -8,7 +8,7 @@ cimport cython
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef double reduced_euclidean_distance(double[::1] x1,
-                               double[::1] x2):
+                                       double[::1] x2):
     """https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/"""
     cdef double tmp, d
     cdef np.intp_t i, N # why not just use int? https://github.com/scikit-learn/scikit-learn/pull/1458
