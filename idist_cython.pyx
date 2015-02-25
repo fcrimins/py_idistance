@@ -23,28 +23,8 @@ ctypedef np.intp_t ITYPE_t  # WARNING: should match ITYPE in typedefs.pyx
 #from sklearn.neighbors.typedefs import DTYPE, ITYPE # this works b/c these are Python types
 
 
-from sklearn.neighbors import dist_metrics
-
- 
-# @cython.boundscheck(False)
-# @cython.wraparound(False)
-# cdef double reduced_euclidean_distance(double[::1] x1,
-#                                        double[::1] x2):
-#     """https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/"""
-#     cdef double tmp, d
-#     cdef np.intp_t i, N # why not just use int? https://github.com/scikit-learn/scikit-learn/pull/1458
-#  
-#     d = 0
-#     N = x1.shape[0]
-#     # assume x2 has the same shape as x1.  This could be dangerous!
-#  
-#     for i in range(N):
-#         tmp = x1[i] - x2[i]
-#         d += tmp * tmp
-#  
-#     return d # sqrt(d) # i.e. "reduced"
-#  
- 
+#from sklearn.neighbors import dist_metrics # works, just not useful
+#from sklearn.neighbors.dist_metrics cimport euclidean_rdist import # "Name 'euclidean_rdist' not declared in module..." 
 cdef inline DTYPE_t euclidean_rdist(DTYPE_t * x1, DTYPE_t * x2,
                                     ITYPE_t size) except -1:
     """Copied from sklearn.neighbors.dist_metrics.pxd."""
