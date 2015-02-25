@@ -60,7 +60,7 @@ def knn_search_sequential(dat, query_pt, int K_):
          
         for j in xrange(X_.shape[0]): # for each row/point
             sqdistj = euclidean_rdist(&Q_[0], &X_[j, 0], D_)
-            _add_neighbor(heap, K_, i, j, sqdistj)
+            heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j) # _add_neighbor
     
     # sqrt all of the reduced/squared distances to get Euclidean distances
     knn_heap = []
@@ -68,17 +68,6 @@ def knn_search_sequential(dat, query_pt, int K_):
         knn_heap.append((-sqrt(heap.distances[0, i]), 0, heap.indices[0, i]))
  
     return knn_heap
- 
- 
-# @TODO: use cpdef here? "The directive cpdef makes two versions of the method available; one fast for use from Cython and one slower for use from Python."
-cdef void _add_neighbor(NeighborsHeap heap,
-                        int K_,
-                        np.intp_t mat_idx,
-                        np.intp_t row_idx,
-                        DTYPE_t sqdist_node):
-    """Maintain a heap of the K_ closest neighbors
-    """
-    heap.push(<ITYPE_t>0, <DTYPE_t>sqdist_node, <ITYPE_t>row_idx)
  
  
  
