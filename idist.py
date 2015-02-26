@@ -39,7 +39,7 @@ def bplus_tree(dat, iradius, K_):
     t0 = time.clock()
     idists, partition_dist_max, partition_point_counts = _idistance_index(dat, ref_pts, C_)
     time_index = time.clock() - t0
-    print('partition_dist_max (min, max, avg): {:.2f}, {:.2f}, {:.2f}'.format(min(partition_dist_max), max(partition_dist_max), sum(partition_dist_max) / len(partition_dist_max)))
+    kth_farthest_dists = []
     
     def partition_overlap(dat, ref_pts, partition_dist_max):
         max_iters = 1000
@@ -59,7 +59,7 @@ def bplus_tree(dat, iradius, K_):
             if niters >= max_iters:
                 break
         print('avg number of partitions containing any given point: {:.4f} ({:2.0f}% of {} partitions)'.format(float(sum_nparts) / niters, float(sum_nparts) / niters * 100 / len(ref_pts), len(ref_pts)))
-    partition_overlap(dat, ref_pts, partition_dist_max)
+    
     
     assert(len(dat) == 1)
     t0 = time.clock()
@@ -162,6 +162,9 @@ def bplus_tree(dat, iradius, K_):
                 print('\nBallTree KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn_bt))
             if neq_dists(knn_seq, knn_brute):
                 print('\nBrute KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn_brute))
+                
+            print('k\'th ({}th) farthest distance: {:.2f}'.format(K_, -knn[0][0]))
+            kth_farthest_dists.append(-knn[0][0])
 
             niters += 1
             if niters >= MAX_QUERIES:
@@ -179,6 +182,11 @@ def bplus_tree(dat, iradius, K_):
     # need to be encircled
     # bottom line: 2 highly correlated dimensions really act like just a single dim (or maybe 1.1 dims)
         
+    print('')
+    partition_overlap(dat, ref_pts, partition_dist_max)
+    print('partition_dist_max (min, max, avg): {:.2f}, {:.2f}, {:.2f}'.format(min(partition_dist_max), max(partition_dist_max), sum(partition_dist_max) / len(partition_dist_max)))
+    print('kth_farthest_dists (min, max, avg): {:.2f}, {:.2f}, {:.2f}'.format(min(kth_farthest_dists), max(kth_farthest_dists), sum(kth_farthest_dists) / len(kth_farthest_dists)))
+    print('*** kth_farthest / partition_dist_max: {:.3f} *** (iDistance breaks down when this approaches 1, which happens when the number of dimensions gets large)'.format(sum(kth_farthest_dists) / sum(partition_dist_max) / len(kth_farthest_dists) * len(partition_dist_max)))
     print('')
     print('* indexation time (idist, bt, brute): {:.4f}/{:.4f}/{:.4f}'.format(time_index, time_index_bt, time_index_brute))
     print('* absolute times per 1000 queries (seq, idist, seq_cy, bt, brute):  = {:.2f}/{:.2f}/{:.2f}/{:.2f}/{:.2f}'.format(*(x * 1000 / niters for x in (time_seq, time_idist, time_seq_cy, time_bt, time_brute))))
