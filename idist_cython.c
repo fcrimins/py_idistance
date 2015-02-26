@@ -2259,7 +2259,7 @@ static PyObject *__pyx_pf_12idist_cython_knn_search_sequential(CYTHON_UNUSED PyO
  * 
  *         for j in xrange(X_.shape[0]): # for each row/point             # <<<<<<<<<<<<<<
  *             sqdistj = euclidean_rdist(&Q_[0], &X_[j, 0], D_)
- *             heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j)
+ *             heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j) # _add_neighbor
  */
     __pyx_t_14 = (__pyx_v_X_.shape[0]);
     for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_14; __pyx_t_15+=1) {
@@ -2269,7 +2269,7 @@ static PyObject *__pyx_pf_12idist_cython_knn_search_sequential(CYTHON_UNUSED PyO
  * 
  *         for j in xrange(X_.shape[0]): # for each row/point
  *             sqdistj = euclidean_rdist(&Q_[0], &X_[j, 0], D_)             # <<<<<<<<<<<<<<
- *             heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j)
+ *             heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j) # _add_neighbor
  * 
  */
       __pyx_t_16 = 0;
@@ -2281,7 +2281,7 @@ static PyObject *__pyx_pf_12idist_cython_knn_search_sequential(CYTHON_UNUSED PyO
       /* "idist_cython.pyx":63
  *         for j in xrange(X_.shape[0]): # for each row/point
  *             sqdistj = euclidean_rdist(&Q_[0], &X_[j, 0], D_)
- *             heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j)             # <<<<<<<<<<<<<<
+ *             heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j) # _add_neighbor             # <<<<<<<<<<<<<<
  * 
  *     # sqrt all of the reduced/squared distances to get Euclidean distances
  */

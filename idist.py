@@ -26,11 +26,38 @@ def bplus_tree(dat, iradius, K_):
     N_ = sum(mat.shape[0] for mat in dat)
     print('N = {}'.format(N_))
     
+    if iradius is None:
+        iradius = 0.2 # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
+    #radius = C_ / num_points * np.power(K_, 1.0 / dat[0].shape[1]) * (iradius if iradius else 10.0)
+    print('iradius = {}\n'.format(iradius))
+    # @TODO: initalize radius to a fraction of C_; use some empirical tests to figure out optimal
+    
     ref_pts = _reference_points(maxs, mins)
     
     t0 = time.clock()
     idists, partition_dist_max, partition_point_counts = _idistance_index(dat, ref_pts, C_)
     time_index = time.clock() - t0
+    print('partition_dist_max (min, max, avg): {:.2f}, {:.2f}, {:.2f}'.format(min(partition_dist_max), max(partition_dist_max), sum(partition_dist_max) / len(partition_dist_max)))
+    
+    def partition_overlap(dat, ref_pts, partition_dist_max):
+        max_iters = 1000
+        niters = 0
+        sum_nparts = 0
+        for mat in dat:
+            for i in xrange(mat.shape[0]):
+                nparts = 0
+                for j, rp in enumerate(ref_pts):
+                    d_rp = np.sqrt(np.sum((rp - mat[i, :])**2))
+                    if d_rp < partition_dist_max[j]:
+                        nparts += 1
+                niters += 1
+                sum_nparts += nparts
+                if niters >= max_iters:
+                    break
+            if niters >= max_iters:
+                break
+        print('avg number of partitions inside: {:.4f} ({:2.0f}% of {} partitions)'.format(float(sum_nparts) / niters, float(sum_nparts) / niters * 100 / len(ref_pts), len(ref_pts)))
+    partition_overlap(dat, ref_pts, partition_dist_max)
     
     assert(len(dat) == 1)
     t0 = time.clock()
@@ -47,7 +74,7 @@ def bplus_tree(dat, iradius, K_):
     else:
         brute_alg = 'brute' # ball_tree=36.4, brute=68.5 (per 1000 queries)
         nbrs = NearestNeighbors(n_neighbors=K_, algorithm=brute_alg).fit(dat[0])
-    print('brute_alg: {}'.format(brute_alg))
+    print('brute_alg: {}\n'.format(brute_alg))
     time_index_brute = time.clock() - t0
     
     MAX_QUERIES = 10
@@ -98,7 +125,7 @@ def bplus_tree(dat, iradius, K_):
             dist_bt, idx_bt = ball_tree.query(query_pt, k=K_, return_distance=True)
             time_bt += time.clock() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
-            print('ball_tree(trims, leaves, splits) = {}'.format(ball_tree.get_tree_stats()))
+            #print('ball_tree(trims, leaves, splits) = {}'.format(ball_tree.get_tree_stats()))
             
             if OVERRIDE_BRUTE: brute_tree.reset_n_calls()
             t0 = time.clock()
@@ -106,8 +133,8 @@ def bplus_tree(dat, iradius, K_):
                                      nbrs.kneighbors(query_pt))
             time_brute += time.clock() - t0
             ndists_brute += (brute_tree.get_n_calls() if OVERRIDE_BRUTE else dat[0].shape[0])
-            if OVERRIDE_BRUTE:
-                print('brute_tree(trims, leaves, splits) = {}'.format(brute_tree.get_tree_stats()))
+#             if OVERRIDE_BRUTE:
+#                 print('brute_tree(trims, leaves, splits) = {}'.format(brute_tree.get_tree_stats()))
             
             def sk_2_knn(dist, idx):            
                 knn = []
@@ -182,14 +209,9 @@ def _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max,
     
     num_points = sum(m.shape[0] for m in dat)
 
-    radius = (iradius if iradius else 0.2) # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
-    #radius = C_ / num_points * np.power(K_, 1.0 / dat[0].shape[1]) * (iradius if iradius else 10.0)
-    if 'radius_printed' not in globals():
-        print('radius = {}\n'.format(radius))
-        globals()['radius_printed'] = None
+    radius = iradius    
     radius_increment = radius
-    # @TODO: initalize radius to a fraction of C_; use some empirical tests to figure out optimal
-    
+
     knn_heap = []
     
     # variable to mark for partitions checked
@@ -218,6 +240,8 @@ def _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max,
         
         # no need to grow geometrically as search area is growing as the square of this already
         radius += radius_increment
+        
+        #print('RADIUS = {}'.format(radius))
 
         #print('RADIUS = {}'.format(radius))
         _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count, ref_pt_dists)
@@ -234,11 +258,14 @@ def _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max,
 
 
 def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count, ref_pt_dists):
+    
+    nparts_initialized = 0
+    nparts_visited = 0
 
     for i, rp in enumerate(ref_pts):
         
         d_rp, q_idist = ref_pt_dists[i]
-        
+                
         if not partition_checked[i]:
             
             # filter dist(O_i, q) - querydist(q)="r" <= dist_max_i
@@ -250,6 +277,9 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
                 # if query point is inside this partition, must search left and right
                 if d_rp <= partition_dist_max[i]:
                     
+                    #print('initializing partition {} (INSIDE)'.format(i))
+                    nparts_initialized += 1
+                    
                     # find query pt and search inwards/left and outwards/right
                     right_idxs[i] = bisect.bisect_right(idists, (q_idist, -1, -1)) # strictly greater than
                     left_idxs[i] = right_idxs[i] - 1 # <=
@@ -257,15 +287,23 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
                     _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max, visited_count)
 
                 else: # query sphere intersects, so only search inward towards the ref point
+                    #print('initializing partition {}'.format(i))
+                    nparts_initialized += 1
                     left_idxs[i] = bisect.bisect_right(idists, ((i + 1) * C_, -1, -1)) - 1 # <=
                     _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i, visited_count)
                     right_idxs[i] = None
                     
         else: # we've checked this partition before
+            if left_idxs[i] is not None or right_idxs[i] is not None:
+                nparts_visited += 1 
             if left_idxs[i] is not None:
+                #print('checking partition {}'.format(i))
                 _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i, visited_count)
             if right_idxs[i] is not None:
+                #print('checking partition {}'.format(i))
                 _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max, visited_count)
+                
+    #print('partitions initialized/visited: {}/{}'.format(nparts_initialized, nparts_visited))
 
 
 def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, query_pt, part_i, visited_count):
@@ -283,6 +321,7 @@ def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, q
     
     node = idists[left_idxs[part_i]]
     #print('Searching inward from {} ({})'.format(node, left_idxs[part_i]))
+    search_start_idx = left_idxs[part_i]
 
     # while not to stopping value and still inside partition
     while left_idxs[part_i] >= 0 and node[0] >= stopping_val and node[0] >= partition_offset:
@@ -297,6 +336,8 @@ def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, q
     # exited partition (i.e. reached reference point)
     if left_idxs[part_i] < 0 or node[0] < partition_offset: 
         left_idxs[part_i] = None
+        
+    #print('    inward {} -> {}'.format(search_start_idx, left_idxs[part_i]))
 
 
 def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val, query_pt, part_i, partition_dist_max, visited_count):
@@ -314,6 +355,7 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     
     node = idists[right_idxs[part_i]]
     #print('Searching outward from {} ({})'.format(node, right_idxs[part_i]))
+    search_start_idx = right_idxs[part_i]
     
     num_idists = len(idists)
 
@@ -330,6 +372,9 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     # exited partition (i.e. reached ref point's hypersphere boundary)
     if right_idxs[part_i] >= num_idists or node[0] > idist_max: 
         right_idxs[part_i] = None
+        
+    #print('    outward {} -> {}'.format(search_start_idx, right_idxs[part_i]))
+    
 
 def _add_neighbor(knn_heap, K_, node, sqdist_node):
     """Maintain a heap of the K_ closest neighbors
@@ -377,6 +422,10 @@ def _idistance_index(dat, ref_pts, C_):
             
             partition_point_counts[minr] += 1
             if ref_dist > partition_dist_max[minr]:
+#                 if ref_dist > 4.5:
+#                     print('ref_dist = {}'.format(ref_dist))
+#                     print('ref_pt = {}'.format(ref_pts[minr]))
+#                     print('row_pt = {}\n'.format(row))
                 partition_dist_max[minr] = ref_dist
         
     # convert idists into a sortable array so that we can perform binary search for
@@ -437,6 +486,8 @@ def _calculate_c(dat):
 
     # compute the diagonal    
     c = np.sqrt(sum(r**2 for r in ranges))
+    print('Min required C = {}'.format(c))
+    
     logc = np.log10(c)
     c = 10**np.ceil(logc)
     return c, maxs, mins
