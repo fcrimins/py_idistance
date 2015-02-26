@@ -9,7 +9,9 @@ from sklearn.neighbors import BallTree, NearestNeighbors, KDTree
 # can't use pyximport b/c compiling idist_cython requires numpy include directory 
 #import pyximport
 #pyximport.install()
-import idist_cython
+import idist_cython # not really idist but sequential search rather implemented in Cython
+
+_DEBUG_ = False
 
 _ndists = None
 
@@ -32,7 +34,7 @@ def bplus_tree(dat, iradius, K_):
     print('iradius = {}\n'.format(iradius))
     # @TODO: initalize radius to a fraction of C_; use some empirical tests to figure out optimal
     
-    ref_pts = _reference_points(maxs, mins)
+    ref_pts = _reference_points(maxs, mins, dat)
     
     t0 = time.clock()
     idists, partition_dist_max, partition_point_counts = _idistance_index(dat, ref_pts, C_)
@@ -56,7 +58,7 @@ def bplus_tree(dat, iradius, K_):
                     break
             if niters >= max_iters:
                 break
-        print('avg number of partitions inside: {:.4f} ({:2.0f}% of {} partitions)'.format(float(sum_nparts) / niters, float(sum_nparts) / niters * 100 / len(ref_pts), len(ref_pts)))
+        print('avg number of partitions containing any given point: {:.4f} ({:2.0f}% of {} partitions)'.format(float(sum_nparts) / niters, float(sum_nparts) / niters * 100 / len(ref_pts), len(ref_pts)))
     partition_overlap(dat, ref_pts, partition_dist_max)
     
     assert(len(dat) == 1)
@@ -125,7 +127,7 @@ def bplus_tree(dat, iradius, K_):
             dist_bt, idx_bt = ball_tree.query(query_pt, k=K_, return_distance=True)
             time_bt += time.clock() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
-            #print('ball_tree(trims, leaves, splits) = {}'.format(ball_tree.get_tree_stats()))
+            print('ball_tree(trims, leaves, splits) = {}'.format(ball_tree.get_tree_stats()))
             
             if OVERRIDE_BRUTE: brute_tree.reset_n_calls()
             t0 = time.clock()
@@ -133,8 +135,8 @@ def bplus_tree(dat, iradius, K_):
                                      nbrs.kneighbors(query_pt))
             time_brute += time.clock() - t0
             ndists_brute += (brute_tree.get_n_calls() if OVERRIDE_BRUTE else dat[0].shape[0])
-#             if OVERRIDE_BRUTE:
-#                 print('brute_tree(trims, leaves, splits) = {}'.format(brute_tree.get_tree_stats()))
+            if OVERRIDE_BRUTE:
+                print('brute_tree(trims, leaves, splits) = {}'.format(brute_tree.get_tree_stats()))
             
             def sk_2_knn(dist, idx):            
                 knn = []
@@ -221,8 +223,6 @@ def _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max,
     left_idxs = [None] * len(ref_pts)
     right_idxs = [None] * len(ref_pts)
     
-    visited_count = [(0, 0)] * len(ref_pts)
-    
     # no need to calculate distance to every reference point every iteration
     globals()['_ndists'] += len(ref_pts)
     ref_pt_dists = []
@@ -241,23 +241,19 @@ def _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max,
         # no need to grow geometrically as search area is growing as the square of this already
         radius += radius_increment
         
-        #print('RADIUS = {}'.format(radius))
+        if _DEBUG_:
+            print('RADIUS = {}'.format(radius))
 
         #print('RADIUS = {}'.format(radius))
-        _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count, ref_pt_dists)
+        _knn_search_radius(K_, knn_heap, dat, query_pt, radius, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, ref_pt_dists)
 
-    if 'stop_printing' not in globals():
-        print('final radius: {} ({}x)'.format(radius, int(radius / radius_increment + 0.5)))
-        for i, cnt in enumerate(visited_count):
-            print('    reference point {} visits: {} / {}'.format(i, cnt, partition_point_counts[i]))
-            
     for i, nn in enumerate(knn_heap):
         knn_heap[i] = (-np.sqrt(-nn[0]), nn[1], nn[2])
 
     return knn_heap
 
 
-def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, visited_count, ref_pt_dists):
+def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, right_idxs, partition_checked, idists, partition_dist_max, ref_pt_dists):
     
     nparts_initialized = 0
     nparts_visited = 0
@@ -283,14 +279,14 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
                     # find query pt and search inwards/left and outwards/right
                     right_idxs[i] = bisect.bisect_right(idists, (q_idist, -1, -1)) # strictly greater than
                     left_idxs[i] = right_idxs[i] - 1 # <=
-                    _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i, visited_count)
-                    _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max, visited_count)
+                    _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
+                    _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max)
 
                 else: # query sphere intersects, so only search inward towards the ref point
                     #print('initializing partition {}'.format(i))
                     nparts_initialized += 1
                     left_idxs[i] = bisect.bisect_right(idists, ((i + 1) * C_, -1, -1)) - 1 # <=
-                    _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i, visited_count)
+                    _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
                     right_idxs[i] = None
                     
         else: # we've checked this partition before
@@ -298,15 +294,16 @@ def _knn_search_radius(K_, knn_heap, dat, query_pt, R_, C_, ref_pts, left_idxs, 
                 nparts_visited += 1 
             if left_idxs[i] is not None:
                 #print('checking partition {}'.format(i))
-                _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i, visited_count)
+                _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, q_idist - R_, query_pt, i)
             if right_idxs[i] is not None:
                 #print('checking partition {}'.format(i))
-                _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max, visited_count)
+                _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, q_idist + R_, query_pt, i, partition_dist_max)
                 
-    #print('partitions initialized/visited: {}/{}'.format(nparts_initialized, nparts_visited))
+    if _DEBUG_:
+        print('partitions initialized/visited: {}/{}'.format(nparts_initialized, nparts_visited))
 
 
-def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, query_pt, part_i, visited_count):
+def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, query_pt, part_i):
     """Iterate left_idxs[part_i] inward towards reference point until stopping value has
     been reached or partion has been exited.
     
@@ -322,13 +319,16 @@ def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, q
     node = idists[left_idxs[part_i]]
     #print('Searching inward from {} ({})'.format(node, left_idxs[part_i]))
     search_start_idx = left_idxs[part_i]
+    dists_visited = []
 
     # while not to stopping value and still inside partition
     while left_idxs[part_i] >= 0 and node[0] >= stopping_val and node[0] >= partition_offset:
         globals()['_ndists'] += 1
         sqdist_node = np.sum((dat[node[1]][node[2]] - query_pt)**2)
-        _add_neighbor(knn_heap, K_, node, sqdist_node)
-        visited_count[part_i] = (visited_count[part_i][0] + 1, visited_count[part_i][1])
+        new_neighbor = _add_neighbor(knn_heap, K_, node, sqdist_node)
+        if _DEBUG_:
+            d = float('{:.1f}'.format(np.sqrt(sqdist_node)))
+            dists_visited.append((d, True) if new_neighbor else d)
         left_idxs[part_i] -= 1
         if left_idxs[part_i] >= 0:
             node = idists[left_idxs[part_i]]
@@ -336,11 +336,11 @@ def _knn_search_inward(K_, knn_heap, dat, idists, left_idxs, C_, stopping_val, q
     # exited partition (i.e. reached reference point)
     if left_idxs[part_i] < 0 or node[0] < partition_offset: 
         left_idxs[part_i] = None
-        
-    #print('    inward {} -> {}'.format(search_start_idx, left_idxs[part_i]))
 
+    if dists_visited and _DEBUG_:
+        print('    partition {} inward {} -> {} {}'.format(part_i, search_start_idx, left_idxs[part_i], dists_visited))
 
-def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val, query_pt, part_i, partition_dist_max, visited_count):
+def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val, query_pt, part_i, partition_dist_max):
     """Iterate right_idxs[part_i] outward away from reference point until stopping value has
     been reached or partion has been exited.
     
@@ -356,6 +356,7 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     node = idists[right_idxs[part_i]]
     #print('Searching outward from {} ({})'.format(node, right_idxs[part_i]))
     search_start_idx = right_idxs[part_i]
+    dists_visited = []
     
     num_idists = len(idists)
 
@@ -363,8 +364,10 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     while right_idxs[part_i] < num_idists and node[0] <= stopping_val and node[0] <= idist_max:
         globals()['_ndists'] += 1
         sqdist_node = np.sum((dat[node[1]][node[2]] - query_pt)**2)
-        _add_neighbor(knn_heap, K_, node, sqdist_node)
-        visited_count[part_i] = (visited_count[part_i][0], visited_count[part_i][1] + 1)
+        new_neighbor = _add_neighbor(knn_heap, K_, node, sqdist_node)
+        if _DEBUG_:
+            d = float('{:.1f}'.format(np.sqrt(sqdist_node)))
+            dists_visited.append((d, True) if new_neighbor else d)
         right_idxs[part_i] += 1
         if right_idxs[part_i] < num_idists:
             node = idists[right_idxs[part_i]]
@@ -373,7 +376,8 @@ def _knn_search_outward(K_, knn_heap, dat, idists, right_idxs, C_, stopping_val,
     if right_idxs[part_i] >= num_idists or node[0] > idist_max: 
         right_idxs[part_i] = None
         
-    #print('    outward {} -> {}'.format(search_start_idx, right_idxs[part_i]))
+    if dists_visited and _DEBUG_:
+        print('    partition {} outward {} -> {} {}'.format(part_i, search_start_idx, right_idxs[part_i], dists_visited))
     
 
 def _add_neighbor(knn_heap, K_, node, sqdist_node):
@@ -386,10 +390,14 @@ def _add_neighbor(knn_heap, K_, node, sqdist_node):
     # @TODO: only add neighbor if it isn't in the same cross validation bucket as the query point
     if len(knn_heap) < K_:
         heapq.heappush(knn_heap, heap_node) # @TODO: does this perform an assignment?  does it matter?
+        return True
     
     # -knn_heap[0][0] is the (squared) distance to the farthest point in the current knn
     elif sqdist_node < -knn_heap[0][0]:
         heapq.heappushpop(knn_heap, heap_node)
+        return True
+    
+    return False
 
 
 def _idistance_index(dat, ref_pts, C_):
@@ -437,7 +445,7 @@ def _idistance_index(dat, ref_pts, C_):
     return sorted_idists, partition_dist_max, partition_point_counts
 
 
-def _reference_points(mins, maxs):
+def _reference_points(mins, maxs, dat):
     """Choose reference points.  These will dictate how the metric space is
     partitioned, something along the lines of a Voronoi diagram.  Every other
     point will be assigned to its closest reference point.  Here we choose
@@ -450,16 +458,31 @@ def _reference_points(mins, maxs):
     mean that randomly selected points might just be better as they will
     be distributed the same as the rest of the data set.
     """
-    dim = len(mins)
-    num_partitions = dim * 2 # may want to add a center point also
-    mids = (mins + maxs) / 2
-    ref_pts = []
-    for i in xrange(num_partitions):
-        ref_pts.append(np.copy(mids)) # need to ensure not using references to the same 'mids' ndarray
+    HALF_POINTS = 0
+    RANDOM = 1
     
-    for i in xrange(dim):
-        ref_pts[i * 2    ][i] = mins[i]
-        ref_pts[i * 2 + 1][i] = maxs[i]
+    REF_PT_CHOOSER = HALF_POINTS
+    
+    D_ = len(mins)
+    ref_pts = []
+        
+    if REF_PT_CHOOSER == HALF_POINTS:
+        num_partitions = D_ * 2 # may want to add a center point also
+        mids = (mins + maxs) / 2
+        for i in xrange(num_partitions):
+            ref_pts.append(np.copy(mids)) # need to ensure not using references to the same 'mids' ndarray
+        
+        for i in xrange(D_):
+            ref_pts[i * 2    ][i] = mins[i]
+            ref_pts[i * 2 + 1][i] = maxs[i]
+            
+    elif REF_PT_CHOOSER == RANDOM:
+        num_partitions = D_ * 8
+        for i in xrange(num_partitions):
+            ref_pts.append(dat[-1][-i, :])
+        
+    else:
+        raise ValueError('Unknown REF_PT_CHOOSER')
         
     return ref_pts # [ : len(ref_pts) / 2]
 
