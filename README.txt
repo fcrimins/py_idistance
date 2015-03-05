@@ -93,4 +93,11 @@ idea:
 generally, this idea of beefing up the preprocessing doesn't seem explored
 
 What percentage of a query point's knn are in the right kd tree top level partition given the query point lies at the pth percentile of that dimension? (Note also that dimension scaling may trump query point percentiles.)
+_______________________________________________
+
+idea:
+From the second answer to the stackoverflow link above (which mentions using Voronoi Tessellations).
+Rather than computing the Voronoi, just select 250 reference points at random and assign all of the
+other points to their nearest.  Possibly do this in multiple layers.  Then for querying, select the
+closest reference point and search its sub-points.  How do you trim then, though?
 	
