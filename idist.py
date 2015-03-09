@@ -82,7 +82,7 @@ def bplus_tree(dat, iradius, K_):
     print('brute_alg: {}\n'.format(brute_alg))
     time_index_brute = time.clock() - t0
     
-    MAX_QUERIES = 10
+    MAX_QUERIES = 1
     
     time_idist = 0.0
     time_seq = 0.0

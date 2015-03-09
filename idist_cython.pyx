@@ -42,7 +42,7 @@ _ndists2 = 0
 
 cpdef num_procs():
     return openmp.omp_get_num_procs()
- 
+
 def knn_search_sequential(dat, query_pt, int K_):
     """Search sequentially through every point in dat for query_pt's K_ nearest
     neighbors.
@@ -53,11 +53,14 @@ def knn_search_sequential(dat, query_pt, int K_):
     cdef DTYPE_t sqdistj
     cdef ITYPE_t D_ = dat[0].shape[1]
     cdef DTYPE_t[::1] Q_ = query_pt
-    
+    # DEF NUM_THREADS = 2
+
     if len(dat) != 1:
         raise ValueError('len(dat) != 1 which is required now that we\'re using NeighborsHeap')
 
     cdef NeighborsHeap heap = NeighborsHeap(1, K_)
+    # cdef NeighborsHeap subheaps[NUM_THREADS]
+
     for i, mat in enumerate(dat):
 
         X_ = mat # convert to memoryview so that we can take addresses below
@@ -69,12 +72,14 @@ def knn_search_sequential(dat, query_pt, int K_):
         #         for j in range(100):
         #             x[i,:] = np.cos(x[i,:])
 
-        chunk = 103
+        chunk = <np.intp_t>1e6 + 1 # +1 so that there's a remainder
         nc = n / chunk
         rc = n % chunk
 
         with nogil, cython.boundscheck(False), cython.wraparound(False):
-            for j in prange(nc, schedule='static', num_threads=2):
+            for j in prange(nc, schedule='static', num_threads=4):
+                with gil:
+                    print('{} thread_id = {}'.format(j, openmp.omp_get_thread_num()))
                 for k in range(chunk):
                     jk = j * chunk + k
                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
