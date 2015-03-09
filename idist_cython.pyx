@@ -28,7 +28,7 @@ from cython.parallel cimport prange
 #from sklearn.neighbors import dist_metrics # works, just not useful
 #from sklearn.neighbors.dist_metrics cimport euclidean_rdist import # "Name 'euclidean_rdist' not declared in module..." 
 cdef inline DTYPE_t euclidean_rdist(DTYPE_t * x1, DTYPE_t * x2,
-                                    ITYPE_t size) except -1:
+                                    ITYPE_t size) nogil except -1:
     """Copied from sklearn.neighbors.dist_metrics.pxd."""
     cdef DTYPE_t tmp, d=0
     cdef np.intp_t j
@@ -67,9 +67,8 @@ def knn_search_sequential(dat, query_pt, int K_):
         #             x[i,:] = np.cos(x[i,:])
 
         for j in prange(n, nogil=True):
-            with gil:
-                sqdistj = euclidean_rdist(&Q_[0], &X_[j, 0], D_)
-                heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j) # _add_neighbor
+            sqdistj = euclidean_rdist(&Q_[0], &X_[j, 0], D_)
+            heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j) # _add_neighbor
 
     # sqrt all of the reduced/squared distances to get Euclidean distances
     knn_heap = []
@@ -142,7 +141,7 @@ cdef class NeighborsHeap:
         """Return the largest distance in the given row"""
         return self.distances[row, 0]
   
-    cpdef int push(self, ITYPE_t row, DTYPE_t val, ITYPE_t i_val) except -1:
+    cdef int push(self, ITYPE_t row, DTYPE_t val, ITYPE_t i_val) nogil except -1:
         """push (val, i_val) into the given row"""
         cdef ITYPE_t i, ic1, ic2, i_swap
         cdef ITYPE_t size = self.distances.shape[1]
