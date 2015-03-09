@@ -22,6 +22,8 @@ ctypedef np.float64_t DTYPE_t  # WARNING: should match DTYPE in typedefs.pyx
 ctypedef np.intp_t ITYPE_t  # WARNING: should match ITYPE in typedefs.pyx
 from sklearn.neighbors.typedefs import DTYPE, ITYPE # this works b/c these are Python types (used in NeighborsHeap.__cinit__)
 
+from cython.parallel cimport prange
+
 
 #from sklearn.neighbors import dist_metrics # works, just not useful
 #from sklearn.neighbors.dist_metrics cimport euclidean_rdist import # "Name 'euclidean_rdist' not declared in module..." 
@@ -30,7 +32,7 @@ cdef inline DTYPE_t euclidean_rdist(DTYPE_t * x1, DTYPE_t * x2,
     """Copied from sklearn.neighbors.dist_metrics.pxd."""
     cdef DTYPE_t tmp, d=0
     cdef np.intp_t j
-    for j in range(size): # @TODO: xrange faster?
+    for j in range(size): # @TODO: range faster?
         tmp = x1[j] - x2[j]
         d += tmp * tmp
     return d
@@ -43,7 +45,7 @@ def knn_search_sequential(dat, query_pt, int K_):
     neighbors.
     Also: https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/
     """
-    cdef np.intp_t i, j
+    cdef np.intp_t i, j, n
     cdef DTYPE_t[:, ::1] X_
     cdef DTYPE_t sqdistj
     cdef ITYPE_t D_ = dat[0].shape[1]
@@ -54,17 +56,24 @@ def knn_search_sequential(dat, query_pt, int K_):
      
     cdef NeighborsHeap heap = NeighborsHeap(1, K_)
     for i, mat in enumerate(dat):
-         
-        X_ = mat
-        globals()['_ndists2'] += mat.shape[0]
-         
-        for j in xrange(X_.shape[0]): # for each row/point
-            sqdistj = euclidean_rdist(&Q_[0], &X_[j, 0], D_)
-            heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j) # _add_neighbor
-    
+
+        X_ = mat # convert to memoryview so that we can take addresses below
+        n = X_.shape[0]
+        globals()['_ndists2'] += n
+
+        # for i in prange(n, nogil=True):
+        #     with gil:
+        #         for j in range(100):
+        #             x[i,:] = np.cos(x[i,:])
+
+        for j in prange(n, nogil=True):
+            with gil:
+                sqdistj = euclidean_rdist(&Q_[0], &X_[j, 0], D_)
+                heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>j) # _add_neighbor
+
     # sqrt all of the reduced/squared distances to get Euclidean distances
     knn_heap = []
-    for i in xrange(K_):
+    for i in range(K_):
         knn_heap.append((-sqrt(heap.distances[0, i]), 0, heap.indices[0, i]))
  
     return knn_heap
