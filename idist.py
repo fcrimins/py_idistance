@@ -46,7 +46,7 @@ def bplus_tree(dat, iradius, K_):
         niters = 0
         sum_nparts = 0
         for mat in dat:
-            for i in xrange(mat.shape[0]):
+            for i in range(mat.shape[0]):
                 nparts = 0
                 for j, rp in enumerate(ref_pts):
                     d_rp = np.sqrt(np.sum((rp - mat[i, :])**2))
@@ -94,7 +94,7 @@ def bplus_tree(dat, iradius, K_):
     niters = 0
 
     for mat in dat:
-        for j in xrange(mat.shape[0]):
+        for j in range(mat.shape[0]):
             if niters > -1:
                 globals()['stop_printing'] = None
             #query_pt = np.array([0.0, 0.0])
@@ -208,7 +208,7 @@ def _knn_query_sequential(dat, query_pt, K_):
     for i, mat in enumerate(dat):
         globals()['_ndists'] += mat.shape[0]
         sqdists = np.sum((mat - query_pt)**2, axis=1)
-        for j in xrange(mat.shape[0]): # for each row/point
+        for j in range(mat.shape[0]): # for each row/point
             _add_neighbor(knn_heap, K_, (None, i, j), sqdists[j])
     for i, nn in enumerate(knn_heap):
         knn_heap[i] = (-np.sqrt(-nn[0]), nn[1], nn[2])
@@ -421,7 +421,7 @@ def _idistance_index(dat, ref_pts, C_):
     
     for i, mat in enumerate(dat): # for each data file matrix
 
-        for j in xrange(mat.shape[0]): # for each row/point
+        for j in range(mat.shape[0]): # for each row/point
             
             row = mat[j,:] # @TODO: bind this (and the following) method before the loops
             
@@ -477,16 +477,16 @@ def _reference_points(mins, maxs, dat):
     if REF_PT_CHOOSER == HALF_POINTS:
         num_partitions = D_ * 2 # may want to add a center point also
         mids = (mins + maxs) / 2
-        for i in xrange(num_partitions):
+        for i in range(num_partitions):
             ref_pts.append(np.copy(mids)) # need to ensure not using references to the same 'mids' ndarray
         
-        for i in xrange(D_):
+        for i in range(D_):
             ref_pts[i * 2    ][i] = mins[i]
             ref_pts[i * 2 + 1][i] = maxs[i]
             
     elif REF_PT_CHOOSER == RANDOM:
         num_partitions = D_ * 8
-        for i in xrange(num_partitions):
+        for i in range(num_partitions):
             ref_pts.append(dat[-1][-i, :])
         
     else:
