@@ -3,12 +3,12 @@
 /* BEGIN: Cython Metadata
 {
     "distutils": {
+        "include_dirs": [
+            "/home/quant/projects/venv/lib/python3.4/site-packages/numpy/core/include"
+        ],
         "depends": [
             "/home/quant/projects/venv/lib/python3.4/site-packages/numpy/core/include/numpy/ufuncobject.h",
             "/home/quant/projects/venv/lib/python3.4/site-packages/numpy/core/include/numpy/arrayobject.h"
-        ],
-        "include_dirs": [
-            "/home/quant/projects/venv/lib/python3.4/site-packages/numpy/core/include"
         ]
     }
 }
@@ -2340,7 +2340,7 @@ static PyObject *__pyx_pf_12idist_cython_knn_search_sequential(CYTHON_UNUSED PyO
               if (__pyx_t_16 > 0)
               {
                   #ifdef _OPENMP
-                  #pragma omp parallel private(__pyx_t_18, __pyx_t_19, __pyx_t_17, __pyx_t_21, __pyx_t_20) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb)
+                  #pragma omp parallel private(__pyx_t_18, __pyx_t_19, __pyx_t_17, __pyx_t_20, __pyx_t_21) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb)
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
