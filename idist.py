@@ -20,25 +20,26 @@ def bplus_tree(dat, iradius, K_):
     if K_ is None:
         K_ = 5
 
-    C_, maxs, mins = _calculate_c(dat)
-    
-    print('C = {}'.format(C_))
+    DO_IDIST = False
+    if DO_IDIST:
+        C_, maxs, mins = _calculate_c(dat)
+        print('C = {}'.format(C_))
     print('k = {}'.format(K_))
     print('D = {}'.format(dat[0].shape[1]))
     N_ = sum(mat.shape[0] for mat in dat)
     print('N = {}'.format(N_))
-    
-    if iradius is None:
-        iradius = 0.2 # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
-    #radius = C_ / num_points * np.power(K_, 1.0 / dat[0].shape[1]) * (iradius if iradius else 10.0)
-    print('iradius = {}\n'.format(iradius))
-    # @TODO: initalize radius to a fraction of C_; use some empirical tests to figure out optimal
-    
-    ref_pts = _reference_points(maxs, mins, dat)
-    
-    t0 = time.clock()
-    DO_IDIST = False
+    print('nProcs = {}'.format(idist_cython.num_procs()))
+
     if DO_IDIST:
+        if iradius is None:
+            iradius = 0.2 # np.sqrt(C_* C_ / dat[0].shape[1]) * K_ / 400.0 # C_ / 50.0 e.g. 0.2, R_ (initial radius to search)
+        #radius = C_ / num_points * np.power(K_, 1.0 / dat[0].shape[1]) * (iradius if iradius else 10.0)
+        print('iradius = {}\n'.format(iradius))
+        # initalize radius to a fraction of C_; use some empirical tests to figure out optimal
+
+    t0 = time.clock()
+    if DO_IDIST:
+        ref_pts = _reference_points(maxs, mins, dat)
         idists, partition_dist_max, partition_point_counts = _idistance_index(dat, ref_pts, C_)
     time_index = time.clock() - t0
     kth_farthest_dists = []
@@ -130,7 +131,8 @@ def bplus_tree(dat, iradius, K_):
             dist_bt, idx_bt = ball_tree.query(query_pt, k=K_, return_distance=True)
             time_bt += time.clock() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
-            print('ball_tree(trims, leaves, splits) = {}'.format(ball_tree.get_tree_stats()))
+            if not OVERRIDE_BRUTE:
+                print('ball_tree(trims, leaves, splits) = {}'.format(ball_tree.get_tree_stats()))
             
             if OVERRIDE_BRUTE: brute_tree.reset_n_calls()
             t0 = time.clock()
@@ -139,7 +141,7 @@ def bplus_tree(dat, iradius, K_):
             time_brute += time.clock() - t0
             ndists_brute += (brute_tree.get_n_calls() if OVERRIDE_BRUTE else dat[0].shape[0])
             if OVERRIDE_BRUTE:
-                print('brute_tree(trims, leaves, splits) = {}'.format(brute_tree.get_tree_stats()))
+                print('ball/brute_tree(trims, leaves, splits) = {}/{}'.format(ball_tree.get_tree_stats(), brute_tree.get_tree_stats()))
             
             def sk_2_knn(dist, idx):            
                 knn = []
@@ -157,7 +159,7 @@ def bplus_tree(dat, iradius, K_):
             knn_bt.sort()
             knn_brute.sort()
             def neq_dists(knn0, knn1):
-                return any(np.fabs(d0 - d1) > C_ / 1e6 for ((d0, _, _), (d1, _, _)) in zip(knn0, knn1))
+                return any(np.fabs(d0 - d1) > 1e-6 for ((d0, _, _), (d1, _, _)) in zip(knn0, knn1))
             if DO_IDIST and neq_dists(knn_seq, knn):
                 print('\niDistance KNN NOT EQUAL - {} (iter {})\n{}\n{}\n'.format(query_pt, niters, knn_seq, knn))
             if neq_dists(knn_seq, knn_seq_cy):

@@ -12,13 +12,16 @@ from numpy.distutils.misc_util import get_numpy_include_dirs
 
 extensions = [
         Extension("*", ["*.pyx"],
-                  include_dirs=get_numpy_include_dirs()),
+                  include_dirs=get_numpy_include_dirs(),
+                  extra_compile_args=["-fopenmp"],
+                  extra_link_args=["-fopenmp"]
+        ),
     ]
                   
 #extensions = cythonize(extensions)#, include_path=['.', r'C:\Users\Michelle\Documents\eclipse_code\scikit-learn\sklearn\neighbors'])
 # this looks for a pxd file, but my install of sklearn only has a pyd (i.e. a dll) file, it
 # doesn't have the source files
-extensions = cythonize(extensions, include_path=['.', r'C:\Python27\Lib\site-packages'])
+extensions = cythonize(extensions)#, include_path=['.', r'C:\Python27\Lib\site-packages'])
 
 # attempt at writing a C extension from scratch without Cython (i.e. difficult)
 extensions.append(
