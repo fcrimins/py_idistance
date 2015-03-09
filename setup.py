@@ -27,5 +27,14 @@ extensions.append(
         ))
 
 setup(
+    name='py_idistance',
+    version='0.0.1',
+    packages=[''],
+    url='',
+    license='',
+    author='quant',
+    author_email='',
+    description='',
+
     ext_modules = extensions,
 )
