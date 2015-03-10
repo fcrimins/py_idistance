@@ -37,11 +37,11 @@ def bplus_tree(dat, iradius, K_):
         print('iradius = {}\n'.format(iradius))
         # initalize radius to a fraction of C_; use some empirical tests to figure out optimal
 
-    t0 = time.clock()
+    t0 = time.process_time()
     if DO_IDIST:
         ref_pts = _reference_points(maxs, mins, dat)
         idists, partition_dist_max, partition_point_counts = _idistance_index(dat, ref_pts, C_)
-    time_index = time.clock() - t0
+    time_index = time.process_time() - t0
     kth_farthest_dists = []
     
     def partition_overlap(dat, ref_pts, partition_dist_max):
@@ -65,13 +65,13 @@ def bplus_tree(dat, iradius, K_):
     
     
     assert(len(dat) == 1)
-    t0 = time.clock()
+    t0 = time.process_time()
     ball_tree = BallTree(dat[0], leaf_size=15)
-    time_index_bt = time.clock() - t0
+    time_index_bt = time.process_time() - t0
     
     # code: https://github.com/jakevdp/BinaryTree/blob/master/binary_tree.pxi (e.g. get_n_calls)
     OVERRIDE_BRUTE = True
-    t0 = time.clock()
+    t0 = time.process_time()
     if OVERRIDE_BRUTE:
         typ = BallTree
         brute_alg = 'override w/ {}'.format(typ) # BallTree_and_KDTree(N+1)=19 (per 1000 queries), KDTree(15)=70
@@ -80,7 +80,7 @@ def bplus_tree(dat, iradius, K_):
         brute_alg = 'brute' # ball_tree=36.4, brute=68.5 (per 1000 queries)
         nbrs = NearestNeighbors(n_neighbors=K_, algorithm=brute_alg).fit(dat[0])
     print('brute_alg: {}\n'.format(brute_alg))
-    time_index_brute = time.clock() - t0
+    time_index_brute = time.process_time() - t0
     
     MAX_QUERIES = 10
     
@@ -106,39 +106,39 @@ def bplus_tree(dat, iradius, K_):
             query_pt = np.copy(query_pt)
             #query_pt += [0.2, -0.1]
             
-            t0 = time.clock()
+            t0 = time.process_time()
             globals()['_ndists'] = 0
             #print('KNN SEARCH {}'.format(query_pt))
             if DO_IDIST:
                 knn = _knn_query_idist(dat, query_pt, K_, C_, ref_pts, idists, partition_dist_max, iradius, partition_point_counts)
-            time_idist += time.clock() - t0
+            time_idist += time.process_time() - t0
             ndists_idist += globals()['_ndists']
             
-            t0 = time.clock()
+            t0 = time.process_time()
             globals()['_ndists'] = 0
             knn_seq = _knn_query_sequential(dat, query_pt, K_)
-            time_seq += time.clock() - t0
+            time_seq += time.process_time() - t0
             ndists_seq += globals()['_ndists']
             
-            t0 = time.clock()
+            t0 = time.process_time()
             idist_cython._ndists2 = 0
             knn_seq_cy = idist_cython.knn_search_sequential(dat, query_pt, K_)
-            time_seq_cy += time.clock() - t0
+            time_seq_cy += time.process_time() - t0
             ndists_seq_cy += idist_cython._ndists2
             
             ball_tree.reset_n_calls()
-            t0 = time.clock()
+            t0 = time.process_time()
             dist_bt, idx_bt = ball_tree.query(query_pt, k=K_, return_distance=True)
-            time_bt += time.clock() - t0
+            time_bt += time.process_time() - t0
             ndists_bt += ball_tree.get_n_calls() # https://github.com/scikit-learn/scikit-learn/blob/master/sklearn/neighbors/binary_tree.pxi
             if not OVERRIDE_BRUTE:
                 print('ball_tree(trims, leaves, splits) = {}'.format(ball_tree.get_tree_stats()))
             
             if OVERRIDE_BRUTE: brute_tree.reset_n_calls()
-            t0 = time.clock()
+            t0 = time.process_time()
             dist_brute, idx_brute = (brute_tree.query(query_pt, k=K_, return_distance=True) if OVERRIDE_BRUTE else
                                      nbrs.kneighbors(query_pt))
-            time_brute += time.clock() - t0
+            time_brute += time.process_time() - t0
             ndists_brute += (brute_tree.get_n_calls() if OVERRIDE_BRUTE else dat[0].shape[0])
             if OVERRIDE_BRUTE:
                 print('ball/brute_tree(trims, leaves, splits) = {}/{}'.format(ball_tree.get_tree_stats(), brute_tree.get_tree_stats()))
