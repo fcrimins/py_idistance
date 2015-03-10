@@ -13,8 +13,7 @@ from numpy.distutils.misc_util import get_numpy_include_dirs
 extensions = [
         Extension("*", ["*.pyx"],
                   include_dirs=get_numpy_include_dirs(),
-                  extra_compile_args=["-fopenmp"],
-                  extra_link_args=["-fopenmp"]
+                  #extra_compile_args=["-fopenmp"], extra_link_args=["-fopenmp"]
         ),
     ]
                   

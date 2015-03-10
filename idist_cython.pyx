@@ -2,10 +2,11 @@
 #cython: boundscheck=False
 #cython: wraparound=False
 #cython: cdivision=True
+#distutils: extra_compile_args = -fopenmp
+#distutils: extra_link_args = -fopenmp
 
 import numpy as np
 cimport numpy as np
-import heapq
 from libc.math cimport sqrt # http://docs.cython.org/src/tutorial/external.html
 cimport cython
 
@@ -22,7 +23,7 @@ ctypedef np.float64_t DTYPE_t  # WARNING: should match DTYPE in typedefs.pyx
 ctypedef np.intp_t ITYPE_t  # WARNING: should match ITYPE in typedefs.pyx
 from sklearn.neighbors.typedefs import DTYPE, ITYPE # this works b/c these are Python types (used in NeighborsHeap.__cinit__)
 
-from cython.parallel cimport prange
+from cython.parallel cimport prange, threadid
 cimport openmp
 # from cpython cimport PyObject, Py_INCREF, Py_DECREF
 
@@ -49,14 +50,17 @@ def knn_search_sequential(dat, query_pt, int K_):
     neighbors.
     Also: https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/
     """
-    cdef np.intp_t i, j, k, n, nc, chunk, jk, thid
-    cdef DTYPE_t[:, ::1] X_
-    cdef DTYPE_t sqdistj
-    cdef ITYPE_t D_ = dat[0].shape[1]
-    cdef DTYPE_t[::1] Q_ = query_pt
+    cdef:
+        np.intp_t i, j, k, n, nc, chunk, jk, t
+        DTYPE_t[:, ::1] X_
+        DTYPE_t sqdistj
+        ITYPE_t D_ = dat[0].shape[1]
+        DTYPE_t[::1] Q_ = query_pt
+        DTYPE_t * pQ_ = &Q_[0]
+        DTYPE_t[:, ::1] distances
+        ITYPE_t[:, ::1] indices
+
     DEF NUM_THREADS = 2 # openmp.omp_get_num_procs() / 2
-    cdef DTYPE_t[:, ::1] distances
-    cdef ITYPE_t[:, ::1] indices
 
     if len(dat) != 1:
         raise ValueError('len(dat) != 1 which is required now that we\'re using NeighborsHeap')
@@ -77,25 +81,44 @@ def knn_search_sequential(dat, query_pt, int K_):
         n = X_.shape[0]
         globals()['_ndists2'] += n
 
-        chunk = <np.intp_t>1e6 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder
+        chunk = n / 1e2 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder
         nc = n / chunk
 
-        with nogil, cython.boundscheck(False), cython.wraparound(False):
+        # https://www.safaribooksonline.com/library/view/cython/9781491901731/ch12.html
+        # To better illustrate why perfect utilization is often elusive, consider a typical stencil operation like a
+        # five-point nearest-neighbor averaging filter on a two-dimensional C-contiguous array. The core computation is
+        # conceptually straightforward—for a given row and column index, add up the array elements nearby and assign the
+        # average to an output array:
+        #
+        # def filter(...):
+        #     # ...
+        #     for i in range(nrows):
+        #         for j in range(ncols):
+        #             b[i,j] = (a[i,j] + a[i-1,j] + a[i+1,j] +
+        #                             a[i,j-1] + a[i,j+1]) / 5.0
+        #
+        # We can replace the outer range with prange, as we did with the Julia set computations. But for this
+        # straightforward implementation, performance is worse, not better, with prange. Part of the reason is that the
+        # loop body primarily accesses noncontiguous array elements. Because of the lack of locality, the CPU’s cache
+        # cannot be as effective. Besides nonlocality, there are other factors at play that conspire to slow down prange
+        # or any other naive thread-based implementation of the preceding loop.
+
+        with nogil:
 
             # prange design: https://github.com/cython/cython/wiki/enhancements-prange
             for j in prange(nc, schedule='static', num_threads=NUM_THREADS):
-                thid = openmp.omp_get_thread_num()
                 with gil:
-                    psubheap = subheaps[thid] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)
-                    thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)
+                    t = threadid()
+                    psubheap = subheaps[t] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)
+                    thread_counts[t] = (min(thread_counts[t][0], j), max(thread_counts[t][1], j), thread_counts[t][2] + 1)
                 for k in range(chunk):
                     jk = j * chunk + k
-                    sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
+                    sqdistj = euclidean_rdist(pQ_, &X_[jk, 0], D_)
                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
 
             for k in range(n % chunk):
                 jk = nc * chunk + k
-                sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
+                sqdistj = euclidean_rdist(pQ_, &X_[jk, 0], D_)
                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
 
     print('thread_counts = {}'.format(thread_counts))
