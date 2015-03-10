@@ -34,7 +34,7 @@ cdef inline DTYPE_t euclidean_rdist(DTYPE_t * x1, DTYPE_t * x2,
     """Copied from sklearn.neighbors.dist_metrics.pxd."""
     cdef DTYPE_t tmp, d=0
     cdef np.intp_t j
-    for j in range(size): # @TODO: range faster?
+    for j in range(size):
         tmp = x1[j] - x2[j]
         d += tmp * tmp
     return d
@@ -77,15 +77,12 @@ def knn_search_sequential(dat, query_pt, int K_):
         n = X_.shape[0]
         globals()['_ndists2'] += n
 
-        # for i in prange(n, nogil=True):
-        #     with gil:
-        #         for j in range(100):
-        #             x[i,:] = np.cos(x[i,:])
-
-        chunk = <np.intp_t>1e6 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder
+        chunk = <np.intp_t>1e4 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder
         nc = n / chunk
 
         with nogil, cython.boundscheck(False), cython.wraparound(False):
+
+            # prange design: https://github.com/cython/cython/wiki/enhancements-prange
             for j in prange(nc, schedule='static', num_threads=NUM_THREADS):
                 thid = openmp.omp_get_thread_num()
                 with gil:
@@ -93,8 +90,17 @@ def knn_search_sequential(dat, query_pt, int K_):
                     thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)
                 for k in range(chunk):
                     jk = j * chunk + k
+
+                    # reduction variable commentary: https://groups.google.com/forum/#!msg/cython-users/jSZJBjfnp0E/0VxWhCAxjHkJ
                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
+                    # sqdistj = 0
+                    # for l in range(D_):
+                    #     tmp = (&Q_[0])[l] - (&X_[jk, 0])[l]
+                    #     # can't use += here b/c it makes Cython thinks sqdistj is a reduction variable
+                    #     sqdistj = sqdistj + tmp * tmp
+
                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
+
             for k in range(n % chunk):
                 jk = nc * chunk + k
                 sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
