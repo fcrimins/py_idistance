@@ -54,34 +54,22 @@ def knn_search_sequential(dat, query_pt, int K_):
     cdef DTYPE_t sqdistj
     cdef ITYPE_t D_ = dat[0].shape[1]
     cdef DTYPE_t[::1] Q_ = query_pt
-    cdef np.intp_t NUM_THREADS = openmp.omp_get_num_procs()
+    DEF NUM_THREADS = 2 # openmp.omp_get_num_procs() / 2
     cdef DTYPE_t[:, ::1] distances
     cdef ITYPE_t[:, ::1] indices
 
     if len(dat) != 1:
         raise ValueError('len(dat) != 1 which is required now that we\'re using NeighborsHeap')
 
+    # the consolidated heap
     cdef NeighborsHeap heap = NeighborsHeap(1, K_)
-
-    cdef NeighborsHeap psubheap
-
-    # cdef NeighborsHeap subheaps[NUM_THREADS]
-
-    # cdef NeighborsHeap * subheaps = <NeighborsHeap *>malloc(sizeof(NeighborsHeap) * NUM_THREADS)
-    # for i in range(NUM_THREADS):
-    #     subheaps[i] = NeighborsHeap(1, K_)
-
-    # this doesn't work down below without the GIL
-    subheaps = [NeighborsHeap(1, K_) for i in range(NUM_THREADS)]
 
     # "How to declare an array of extension type cython objects"
     # https://groups.google.com/forum/#!topic/cython-users/G8zLWrA-lU0
     # Google search for: array extension type cython
-    # cdef PyObject * subheaps[NUM_THREADS]
-    # for i in range(NUM_THREADS):
-    #     tmp = NeighborsHeap(1, K_)
-    #     Py_INCREF(tmp)
-    #     subheaps[i] = <PyObject *>tmp
+    cdef NeighborsHeap psubheap
+    subheaps = [NeighborsHeap(1, K_) for i in range(NUM_THREADS)]
+    thread_counts = [(dat[0].shape[0], 0, 0) for i in range(NUM_THREADS)]
 
     for i, mat in enumerate(dat):
 
@@ -94,7 +82,7 @@ def knn_search_sequential(dat, query_pt, int K_):
         #         for j in range(100):
         #             x[i,:] = np.cos(x[i,:])
 
-        chunk = <np.intp_t>1e4 + 1 # +1 so that there's a remainder
+        chunk = <np.intp_t>1e6 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder
         nc = n / chunk
 
         with nogil, cython.boundscheck(False), cython.wraparound(False):
@@ -102,15 +90,17 @@ def knn_search_sequential(dat, query_pt, int K_):
                 thid = openmp.omp_get_thread_num()
                 with gil:
                     psubheap = subheaps[thid] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)
-                    print('{} thread_id = {}'.format(j, thid))
+                    thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)
                 for k in range(chunk):
                     jk = j * chunk + k
                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
-                    psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+                    psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
             for k in range(n % chunk):
                 jk = nc * chunk + k
                 sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
-                heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+                heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
+
+    print('thread_counts = {}'.format(thread_counts))
 
     # consolidate the heaps
     for sh in subheaps:

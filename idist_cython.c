@@ -7,11 +7,11 @@
             "/home/quant/projects/venv/lib/python3.4/site-packages/numpy/core/include/numpy/arrayobject.h",
             "/home/quant/projects/venv/lib/python3.4/site-packages/numpy/core/include/numpy/ufuncobject.h"
         ],
-        "extra_link_args": [
-            "-fopenmp"
-        ],
         "include_dirs": [
             "/home/quant/projects/venv/lib/python3.4/site-packages/numpy/core/include"
+        ],
+        "extra_link_args": [
+            "-fopenmp"
         ],
         "extra_compile_args": [
             "-fopenmp"
@@ -843,7 +843,7 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
 
-/* "idist_cython.pyx":144
+/* "idist_cython.pyx":134
  * 
  * 
  * cdef class NeighborsHeap:             # <<<<<<<<<<<<<<
@@ -937,7 +937,7 @@ struct __pyx_memoryviewslice_obj {
 
 
 
-/* "idist_cython.pyx":144
+/* "idist_cython.pyx":134
  * 
  * 
  * cdef class NeighborsHeap:             # <<<<<<<<<<<<<<
@@ -1163,6 +1163,21 @@ static PyObject* __Pyx_Globals(void);
 
 static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type);
 
+#define __Pyx_SetItemInt(o, i, v, type, is_signed, to_py_func, is_list, wraparound, boundscheck) \
+    (__Pyx_fits_Py_ssize_t(i, type, is_signed) ? \
+    __Pyx_SetItemInt_Fast(o, (Py_ssize_t)i, v, is_list, wraparound, boundscheck) : \
+    (is_list ? (PyErr_SetString(PyExc_IndexError, "list assignment index out of range"), -1) : \
+               __Pyx_SetItemInt_Generic(o, to_py_func(i), v)))
+static CYTHON_INLINE int __Pyx_SetItemInt_Generic(PyObject *o, PyObject *j, PyObject *v);
+static CYTHON_INLINE int __Pyx_SetItemInt_Fast(PyObject *o, Py_ssize_t i, PyObject *v,
+                                               int is_list, int wraparound, int boundscheck);
+
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
+#endif
+
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
+
 static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected);
 
 static CYTHON_INLINE void __Pyx_RaiseNeedMoreValuesError(Py_ssize_t index);
@@ -1272,12 +1287,6 @@ static PyObject *__pyx_memoryviewslice__get__base(PyObject *__pyx_v_self); /*pro
 static void __Pyx_WriteUnraisable(const char *name, int clineno,
                                   int lineno, const char *filename,
                                   int full_traceback);
-
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg);
-#endif
-
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg);
 
 #if PY_MAJOR_VERSION < 3
 #define __Pyx_PyString_Join __Pyx_PyBytes_Join
@@ -1770,18 +1779,18 @@ static char __pyx_k_subheaps[] = "subheaps";
 static char __pyx_k_TypeError[] = "TypeError";
 static char __pyx_k_distances[] = "distances";
 static char __pyx_k_enumerate[] = "enumerate";
-static char __pyx_k_thread_id[] = "{} thread_id = {}";
 static char __pyx_k_IndexError[] = "IndexError";
 static char __pyx_k_ValueError[] = "ValueError";
 static char __pyx_k_get_arrays[] = "get_arrays";
 static char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
 static char __pyx_k_MemoryError[] = "MemoryError";
-static char __pyx_k_NUM_THREADS[] = "NUM_THREADS";
 static char __pyx_k_RuntimeError[] = "RuntimeError";
 static char __pyx_k_idist_cython[] = "idist_cython";
 static char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
+static char __pyx_k_thread_counts[] = "thread_counts = {}";
 static char __pyx_k_allocate_buffer[] = "allocate_buffer";
 static char __pyx_k_dtype_is_object[] = "dtype_is_object";
+static char __pyx_k_thread_counts_2[] = "thread_counts";
 static char __pyx_k_strided_and_direct[] = "<strided and direct>";
 static char __pyx_k_strided_and_indirect[] = "<strided and indirect>";
 static char __pyx_k_contiguous_and_direct[] = "<contiguous and direct>";
@@ -1837,7 +1846,6 @@ static PyObject *__pyx_n_s_K;
 static PyObject *__pyx_n_s_MemoryError;
 static PyObject *__pyx_kp_s_MemoryView_of_r_at_0x_x;
 static PyObject *__pyx_kp_s_MemoryView_of_r_object;
-static PyObject *__pyx_n_s_NUM_THREADS;
 static PyObject *__pyx_kp_u_Non_native_byte_order_not_suppor;
 static PyObject *__pyx_n_b_O;
 static PyObject *__pyx_kp_s_Out_of_bounds_on_buffer_access_a;
@@ -1935,7 +1943,8 @@ static PyObject *__pyx_n_s_struct;
 static PyObject *__pyx_n_s_subheaps;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_thid;
-static PyObject *__pyx_kp_s_thread_id;
+static PyObject *__pyx_kp_s_thread_counts;
+static PyObject *__pyx_n_s_thread_counts_2;
 static PyObject *__pyx_kp_s_unable_to_allocate_array_data;
 static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
@@ -2236,12 +2245,12 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   __pyx_t_12idist_cython_DTYPE_t __pyx_v_sqdistj;
   __pyx_t_12idist_cython_ITYPE_t __pyx_v_D_;
   __Pyx_memviewslice __pyx_v_Q_ = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __pyx_t_5numpy_intp_t __pyx_v_NUM_THREADS;
   __Pyx_memviewslice __pyx_v_distances = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_indices = { 0, 0, { 0 }, { 0 }, { 0 } };
   struct __pyx_obj_12idist_cython_NeighborsHeap *__pyx_v_heap = 0;
   struct __pyx_obj_12idist_cython_NeighborsHeap *__pyx_v_psubheap = 0;
   PyObject *__pyx_v_subheaps = NULL;
+  PyObject *__pyx_v_thread_counts = NULL;
   PyObject *__pyx_v_mat = NULL;
   PyObject *__pyx_v_sh = NULL;
   PyObject *__pyx_v_knn_heap = NULL;
@@ -2254,33 +2263,32 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   Py_ssize_t __pyx_t_5;
   int __pyx_t_6;
   __pyx_t_5numpy_intp_t __pyx_t_7;
-  __pyx_t_5numpy_intp_t __pyx_t_8;
-  PyObject *__pyx_t_9 = NULL;
-  PyObject *(*__pyx_t_10)(PyObject *);
-  __Pyx_memviewslice __pyx_t_11 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *(*__pyx_t_9)(PyObject *);
+  __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  PyObject *__pyx_t_11 = NULL;
   PyObject *__pyx_t_12 = NULL;
   PyObject *__pyx_t_13 = NULL;
-  PyObject *__pyx_t_14 = NULL;
+  __pyx_t_5numpy_intp_t __pyx_t_14;
   __pyx_t_5numpy_intp_t __pyx_t_15;
   __pyx_t_5numpy_intp_t __pyx_t_16;
-  PyObject *__pyx_t_17 = NULL;
-  Py_ssize_t __pyx_t_18;
-  PyObject *__pyx_t_19 = NULL;
-  __pyx_t_5numpy_intp_t __pyx_t_20;
+  __pyx_t_5numpy_intp_t __pyx_t_17;
+  PyObject *__pyx_t_18 = NULL;
+  __pyx_t_5numpy_intp_t __pyx_t_19;
+  Py_ssize_t __pyx_t_20;
   __pyx_t_5numpy_intp_t __pyx_t_21;
-  __pyx_t_5numpy_intp_t __pyx_t_22;
-  Py_ssize_t __pyx_t_23;
-  __pyx_t_12idist_cython_DTYPE_t __pyx_t_24;
-  int __pyx_t_25;
+  Py_ssize_t __pyx_t_22;
+  __pyx_t_12idist_cython_DTYPE_t __pyx_t_23;
+  int __pyx_t_24;
+  Py_ssize_t __pyx_t_25;
   Py_ssize_t __pyx_t_26;
-  Py_ssize_t __pyx_t_27;
-  int __pyx_t_28;
-  PyObject *(*__pyx_t_29)(PyObject *);
-  __Pyx_memviewslice __pyx_t_30 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_t_27;
+  PyObject *(*__pyx_t_28)(PyObject *);
+  __Pyx_memviewslice __pyx_t_29 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  Py_ssize_t __pyx_t_30;
   Py_ssize_t __pyx_t_31;
   Py_ssize_t __pyx_t_32;
-  Py_ssize_t __pyx_t_33;
-  int __pyx_t_34;
+  int __pyx_t_33;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -2291,7 +2299,7 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
  *     cdef DTYPE_t sqdistj
  *     cdef ITYPE_t D_ = dat[0].shape[1]             # <<<<<<<<<<<<<<
  *     cdef DTYPE_t[::1] Q_ = query_pt
- *     cdef np.intp_t NUM_THREADS = openmp.omp_get_num_procs()
+ *     DEF NUM_THREADS = 2 # openmp.omp_get_num_procs() / 2
  */
   __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_dat, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(__pyx_t_1 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 55; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
   __Pyx_GOTREF(__pyx_t_1);
@@ -2309,7 +2317,7 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
  *     cdef DTYPE_t sqdistj
  *     cdef ITYPE_t D_ = dat[0].shape[1]
  *     cdef DTYPE_t[::1] Q_ = query_pt             # <<<<<<<<<<<<<<
- *     cdef np.intp_t NUM_THREADS = openmp.omp_get_num_procs()
+ *     DEF NUM_THREADS = 2 # openmp.omp_get_num_procs() / 2
  *     cdef DTYPE_t[:, ::1] distances
  */
   __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dc_nn___pyx_t_12idist_cython_DTYPE_t(__pyx_v_query_pt);
@@ -2317,15 +2325,6 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   __pyx_v_Q_ = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
-
-  /* "idist_cython.pyx":57
- *     cdef ITYPE_t D_ = dat[0].shape[1]
- *     cdef DTYPE_t[::1] Q_ = query_pt
- *     cdef np.intp_t NUM_THREADS = openmp.omp_get_num_procs()             # <<<<<<<<<<<<<<
- *     cdef DTYPE_t[:, ::1] distances
- *     cdef ITYPE_t[:, ::1] indices
- */
-  __pyx_v_NUM_THREADS = omp_get_num_procs();
 
   /* "idist_cython.pyx":61
  *     cdef ITYPE_t[:, ::1] indices
@@ -2343,7 +2342,7 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
  *     if len(dat) != 1:
  *         raise ValueError('len(dat) != 1 which is required now that we\'re using NeighborsHeap')             # <<<<<<<<<<<<<<
  * 
- *     cdef NeighborsHeap heap = NeighborsHeap(1, K_)
+ *     # the consolidated heap
  */
     __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
@@ -2352,16 +2351,16 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "idist_cython.pyx":64
- *         raise ValueError('len(dat) != 1 which is required now that we\'re using NeighborsHeap')
+  /* "idist_cython.pyx":65
  * 
+ *     # the consolidated heap
  *     cdef NeighborsHeap heap = NeighborsHeap(1, K_)             # <<<<<<<<<<<<<<
  * 
- *     cdef NeighborsHeap psubheap
+ *     # "How to declare an array of extension type cython objects"
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_K_); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_K_); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_int_1);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_int_1);
@@ -2369,45 +2368,80 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_12idist_cython_NeighborsHeap)), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 64; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_12idist_cython_NeighborsHeap)), __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 65; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_heap = ((struct __pyx_obj_12idist_cython_NeighborsHeap *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "idist_cython.pyx":75
- * 
- *     # this doesn't work down below without the GIL
+  /* "idist_cython.pyx":71
+ *     # Google search for: array extension type cython
+ *     cdef NeighborsHeap psubheap
  *     subheaps = [NeighborsHeap(1, K_) for i in range(NUM_THREADS)]             # <<<<<<<<<<<<<<
+ *     thread_counts = [(dat[0].shape[0], 0, 0) for i in range(NUM_THREADS)]
  * 
- *     # "How to declare an array of extension type cython objects"
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_7 = __pyx_v_NUM_THREADS;
-  for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_7; __pyx_t_8+=1) {
-    __pyx_v_i = __pyx_t_8;
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_K_); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  for (__pyx_t_7 = 0; __pyx_t_7 < 2; __pyx_t_7+=1) {
+    __pyx_v_i = __pyx_t_7;
+    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_K_); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_9);
+    __pyx_t_8 = PyTuple_New(2); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_8);
     __Pyx_INCREF(__pyx_int_1);
-    PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_int_1);
+    PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_int_1);
     __Pyx_GIVEREF(__pyx_int_1);
-    PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_12idist_cython_NeighborsHeap)), __pyx_t_9, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)((PyObject*)__pyx_ptype_12idist_cython_NeighborsHeap)), __pyx_t_8, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_2))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 75; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_2))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 71; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __pyx_v_subheaps = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "idist_cython.pyx":86
- *     #     subheaps[i] = <PyObject *>tmp
+  /* "idist_cython.pyx":72
+ *     cdef NeighborsHeap psubheap
+ *     subheaps = [NeighborsHeap(1, K_) for i in range(NUM_THREADS)]
+ *     thread_counts = [(dat[0].shape[0], 0, 0) for i in range(NUM_THREADS)]             # <<<<<<<<<<<<<<
+ * 
+ *     for i, mat in enumerate(dat):
+ */
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  for (__pyx_t_7 = 0; __pyx_t_7 < 2; __pyx_t_7+=1) {
+    __pyx_v_i = __pyx_t_7;
+    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_dat, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_shape); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_8);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_8, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+    __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_8);
+    PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_2);
+    __Pyx_GIVEREF(__pyx_t_2);
+    __Pyx_INCREF(__pyx_int_0);
+    PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_int_0);
+    __Pyx_GIVEREF(__pyx_int_0);
+    __Pyx_INCREF(__pyx_int_0);
+    PyTuple_SET_ITEM(__pyx_t_8, 2, __pyx_int_0);
+    __Pyx_GIVEREF(__pyx_int_0);
+    __pyx_t_2 = 0;
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_8))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 72; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  }
+  __pyx_v_thread_counts = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "idist_cython.pyx":74
+ *     thread_counts = [(dat[0].shape[0], 0, 0) for i in range(NUM_THREADS)]
  * 
  *     for i, mat in enumerate(dat):             # <<<<<<<<<<<<<<
  * 
@@ -2416,61 +2450,61 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   __pyx_t_7 = 0;
   if (likely(PyList_CheckExact(__pyx_v_dat)) || PyTuple_CheckExact(__pyx_v_dat)) {
     __pyx_t_1 = __pyx_v_dat; __Pyx_INCREF(__pyx_t_1); __pyx_t_5 = 0;
-    __pyx_t_10 = NULL;
+    __pyx_t_9 = NULL;
   } else {
-    __pyx_t_5 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_dat); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_v_dat); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_10 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   for (;;) {
-    if (likely(!__pyx_t_10)) {
+    if (likely(!__pyx_t_9)) {
       if (likely(PyList_CheckExact(__pyx_t_1))) {
         if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_8 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_8); __pyx_t_5++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_8 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       } else {
         if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_COMPILING_IN_CPYTHON
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_8 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_8); __pyx_t_5++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_8 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         #endif
       }
     } else {
-      __pyx_t_2 = __pyx_t_10(__pyx_t_1);
-      if (unlikely(!__pyx_t_2)) {
+      __pyx_t_8 = __pyx_t_9(__pyx_t_1);
+      if (unlikely(!__pyx_t_8)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         break;
       }
-      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_GOTREF(__pyx_t_8);
     }
-    __Pyx_XDECREF_SET(__pyx_v_mat, __pyx_t_2);
-    __pyx_t_2 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_mat, __pyx_t_8);
+    __pyx_t_8 = 0;
     __pyx_v_i = __pyx_t_7;
     __pyx_t_7 = (__pyx_t_7 + 1);
 
-    /* "idist_cython.pyx":88
+    /* "idist_cython.pyx":76
  *     for i, mat in enumerate(dat):
  * 
  *         X_ = mat # convert to memoryview so that we can take addresses below             # <<<<<<<<<<<<<<
  *         n = X_.shape[0]
  *         globals()['_ndists2'] += n
  */
-    __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_nn___pyx_t_12idist_cython_DTYPE_t(__pyx_v_mat);
-    if (unlikely(!__pyx_t_11.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 88; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_nn___pyx_t_12idist_cython_DTYPE_t(__pyx_v_mat);
+    if (unlikely(!__pyx_t_10.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 76; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __PYX_XDEC_MEMVIEW(&__pyx_v_X_, 1);
-    __pyx_v_X_ = __pyx_t_11;
-    __pyx_t_11.memview = NULL;
-    __pyx_t_11.data = NULL;
+    __pyx_v_X_ = __pyx_t_10;
+    __pyx_t_10.memview = NULL;
+    __pyx_t_10.data = NULL;
 
-    /* "idist_cython.pyx":89
+    /* "idist_cython.pyx":77
  * 
  *         X_ = mat # convert to memoryview so that we can take addresses below
  *         n = X_.shape[0]             # <<<<<<<<<<<<<<
@@ -2479,49 +2513,49 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
  */
     __pyx_v_n = (__pyx_v_X_.shape[0]);
 
-    /* "idist_cython.pyx":90
+    /* "idist_cython.pyx":78
  *         X_ = mat # convert to memoryview so that we can take addresses below
  *         n = X_.shape[0]
  *         globals()['_ndists2'] += n             # <<<<<<<<<<<<<<
  * 
  *         # for i in prange(n, nogil=True):
  */
-    __pyx_t_2 = __Pyx_Globals(); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_8 = __Pyx_Globals(); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_8);
     __Pyx_INCREF(__pyx_n_s_ndists2);
-    __pyx_t_12 = __pyx_n_s_ndists2;
-    __pyx_t_9 = PyObject_GetItem(__pyx_t_2, __pyx_t_12); if (unlikely(__pyx_t_9 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
-    __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_13 = __Pyx_PyInt_From_Py_intptr_t(__pyx_v_n); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_11 = __pyx_n_s_ndists2;
+    __pyx_t_2 = PyObject_GetItem(__pyx_t_8, __pyx_t_11); if (unlikely(__pyx_t_2 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;};
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_12 = __Pyx_PyInt_From_Py_intptr_t(__pyx_v_n); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_12);
+    __pyx_t_13 = PyNumber_InPlaceAdd(__pyx_t_2, __pyx_t_12); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_13);
-    __pyx_t_14 = PyNumber_InPlaceAdd(__pyx_t_9, __pyx_t_13); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_14);
-    __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-    if (unlikely(PyObject_SetItem(__pyx_t_2, __pyx_t_12, __pyx_t_14) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 90; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+    if (unlikely(PyObject_SetItem(__pyx_t_8, __pyx_t_11, __pyx_t_13) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 78; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
-    /* "idist_cython.pyx":97
+    /* "idist_cython.pyx":85
  *         #             x[i,:] = np.cos(x[i,:])
  * 
- *         chunk = <np.intp_t>1e6 + 1 # +1 so that there's a remainder             # <<<<<<<<<<<<<<
+ *         chunk = <np.intp_t>1e6 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder             # <<<<<<<<<<<<<<
  *         nc = n / chunk
  * 
  */
     __pyx_v_chunk = (((__pyx_t_5numpy_intp_t)1e6) + 1);
 
-    /* "idist_cython.pyx":98
+    /* "idist_cython.pyx":86
  * 
- *         chunk = <np.intp_t>1e6 + 1 # +1 so that there's a remainder
+ *         chunk = <np.intp_t>1e6 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder
  *         nc = n / chunk             # <<<<<<<<<<<<<<
  * 
  *         with nogil, cython.boundscheck(False), cython.wraparound(False):
  */
     __pyx_v_nc = (__pyx_v_n / __pyx_v_chunk);
 
-    /* "idist_cython.pyx":100
+    /* "idist_cython.pyx":88
  *         nc = n / chunk
  * 
  *         with nogil, cython.boundscheck(False), cython.wraparound(False):             # <<<<<<<<<<<<<<
@@ -2535,21 +2569,21 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
         #endif
         /*try:*/ {
 
-          /* "idist_cython.pyx":101
+          /* "idist_cython.pyx":89
  * 
  *         with nogil, cython.boundscheck(False), cython.wraparound(False):
  *             for j in prange(nc, schedule='static', num_threads=NUM_THREADS):             # <<<<<<<<<<<<<<
  *                 thid = openmp.omp_get_thread_num()
  *                 with gil:
  */
-          __pyx_t_8 = __pyx_v_nc;
+          __pyx_t_14 = __pyx_v_nc;
           if (1 == 0) abort();
           {
-              __pyx_t_5numpy_intp_t __pyx_parallel_temp0 = 0xbad0bad0;
+              __pyx_t_12idist_cython_DTYPE_t __pyx_parallel_temp0 = __PYX_NAN();
               __pyx_t_5numpy_intp_t __pyx_parallel_temp1 = 0xbad0bad0;
               __pyx_t_5numpy_intp_t __pyx_parallel_temp2 = 0xbad0bad0;
               __pyx_t_5numpy_intp_t __pyx_parallel_temp3 = 0xbad0bad0;
-              __pyx_t_12idist_cython_DTYPE_t __pyx_parallel_temp4 = __PYX_NAN();
+              __pyx_t_5numpy_intp_t __pyx_parallel_temp4 = 0xbad0bad0;
               const char *__pyx_parallel_filename = NULL; int __pyx_parallel_lineno = 0, __pyx_parallel_clineno = 0;
               PyObject *__pyx_parallel_exc_type = NULL, *__pyx_parallel_exc_value = NULL, *__pyx_parallel_exc_tb = NULL;
               int __pyx_parallel_why;
@@ -2560,11 +2594,11 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
                   #define likely(x)   (x)
                   #define unlikely(x) (x)
               #endif
-              __pyx_t_16 = (__pyx_t_8 - 0) / 1;
+              __pyx_t_16 = (__pyx_t_14 - 0) / 1;
               if (__pyx_t_16 > 0)
               {
                   #ifdef _OPENMP
-                  #pragma omp parallel num_threads(__pyx_v_NUM_THREADS) private(__pyx_t_23, __pyx_t_25, __pyx_t_18, __pyx_t_21, __pyx_t_20, __pyx_t_22, __pyx_t_24) firstprivate(__pyx_t_9, __pyx_t_13, __pyx_t_17, __pyx_t_14, __pyx_t_19, __pyx_t_2) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb)
+                  #pragma omp parallel num_threads(2) private(__pyx_t_23, __pyx_t_6, __pyx_t_17, __pyx_t_22, __pyx_t_24, __pyx_t_21, __pyx_t_19, __pyx_t_20) firstprivate(__pyx_t_12, __pyx_t_8, __pyx_t_13, __pyx_t_2, __pyx_t_18) private(__pyx_filename, __pyx_lineno, __pyx_clineno) shared(__pyx_parallel_why, __pyx_parallel_exc_type, __pyx_parallel_exc_value, __pyx_parallel_exc_tb)
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
@@ -2574,19 +2608,19 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
                       Py_BEGIN_ALLOW_THREADS
                       #endif /* _OPENMP */
                       #ifdef _OPENMP
-                      #pragma omp for lastprivate(__pyx_v_jk) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_thid) lastprivate(__pyx_v_k) lastprivate(__pyx_v_sqdistj) schedule(static)
+                      #pragma omp for lastprivate(__pyx_v_sqdistj) lastprivate(__pyx_v_jk) firstprivate(__pyx_v_j) lastprivate(__pyx_v_j) lastprivate(__pyx_v_k) lastprivate(__pyx_v_thid) schedule(static)
                       #endif /* _OPENMP */
                       for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_16; __pyx_t_15++){
                           if (__pyx_parallel_why < 2)
                           {
                               __pyx_v_j = 0 + 1 * __pyx_t_15;
                               /* Initialize private variables to invalid values */
-                              __pyx_v_jk = ((__pyx_t_5numpy_intp_t)0xbad0bad0);
-                              __pyx_v_thid = ((__pyx_t_5numpy_intp_t)0xbad0bad0);
-                              __pyx_v_k = ((__pyx_t_5numpy_intp_t)0xbad0bad0);
                               __pyx_v_sqdistj = ((__pyx_t_12idist_cython_DTYPE_t)__PYX_NAN());
+                              __pyx_v_jk = ((__pyx_t_5numpy_intp_t)0xbad0bad0);
+                              __pyx_v_k = ((__pyx_t_5numpy_intp_t)0xbad0bad0);
+                              __pyx_v_thid = ((__pyx_t_5numpy_intp_t)0xbad0bad0);
 
-                              /* "idist_cython.pyx":102
+                              /* "idist_cython.pyx":90
  *         with nogil, cython.boundscheck(False), cython.wraparound(False):
  *             for j in prange(nc, schedule='static', num_threads=NUM_THREADS):
  *                 thid = openmp.omp_get_thread_num()             # <<<<<<<<<<<<<<
@@ -2595,12 +2629,12 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
  */
                               __pyx_v_thid = omp_get_thread_num();
 
-                              /* "idist_cython.pyx":103
+                              /* "idist_cython.pyx":91
  *             for j in prange(nc, schedule='static', num_threads=NUM_THREADS):
  *                 thid = openmp.omp_get_thread_num()
  *                 with gil:             # <<<<<<<<<<<<<<
  *                     psubheap = subheaps[thid] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)
- *                     print('{} thread_id = {}'.format(j, thid))
+ *                     thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)
  */
                               {
                                   #ifdef WITH_THREAD
@@ -2608,131 +2642,154 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
                                   #endif
                                   /*try:*/ {
 
-                                    /* "idist_cython.pyx":104
+                                    /* "idist_cython.pyx":92
  *                 thid = openmp.omp_get_thread_num()
  *                 with gil:
  *                     psubheap = subheaps[thid] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)             # <<<<<<<<<<<<<<
- *                     print('{} thread_id = {}'.format(j, thid))
+ *                     thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)
  *                 for k in range(chunk):
  */
-                                    if (!(likely(((PyList_GET_ITEM(__pyx_v_subheaps, __pyx_v_thid)) == Py_None) || likely(__Pyx_TypeTest(PyList_GET_ITEM(__pyx_v_subheaps, __pyx_v_thid), __pyx_ptype_12idist_cython_NeighborsHeap))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 104; __pyx_clineno = __LINE__; goto __pyx_L20_error;}
-                                    __pyx_t_2 = PyList_GET_ITEM(__pyx_v_subheaps, __pyx_v_thid);
-                                    __Pyx_INCREF(__pyx_t_2);
-                                    __Pyx_XDECREF_SET(__pyx_v_psubheap, ((struct __pyx_obj_12idist_cython_NeighborsHeap *)__pyx_t_2));
-                                    __pyx_t_2 = 0;
+                                    if (!(likely(((PyList_GET_ITEM(__pyx_v_subheaps, __pyx_v_thid)) == Py_None) || likely(__Pyx_TypeTest(PyList_GET_ITEM(__pyx_v_subheaps, __pyx_v_thid), __pyx_ptype_12idist_cython_NeighborsHeap))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 92; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __pyx_t_8 = PyList_GET_ITEM(__pyx_v_subheaps, __pyx_v_thid);
+                                    __Pyx_INCREF(__pyx_t_8);
+                                    __Pyx_XDECREF_SET(__pyx_v_psubheap, ((struct __pyx_obj_12idist_cython_NeighborsHeap *)__pyx_t_8));
+                                    __pyx_t_8 = 0;
 
-                                    /* "idist_cython.pyx":105
+                                    /* "idist_cython.pyx":93
  *                 with gil:
  *                     psubheap = subheaps[thid] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)
- *                     print('{} thread_id = {}'.format(j, thid))             # <<<<<<<<<<<<<<
+ *                     thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)             # <<<<<<<<<<<<<<
  *                 for k in range(chunk):
  *                     jk = j * chunk + k
  */
-                                    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_thread_id, __pyx_n_s_format); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L20_error;}
-                                    __Pyx_GOTREF(__pyx_t_14);
-                                    __pyx_t_13 = __Pyx_PyInt_From_Py_intptr_t(__pyx_v_j); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L20_error;}
-                                    __Pyx_GOTREF(__pyx_t_13);
-                                    __pyx_t_9 = __Pyx_PyInt_From_Py_intptr_t(__pyx_v_thid); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L20_error;}
-                                    __Pyx_GOTREF(__pyx_t_9);
-                                    __pyx_t_17 = NULL;
-                                    __pyx_t_18 = 0;
-                                    if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_14))) {
-                                      __pyx_t_17 = PyMethod_GET_SELF(__pyx_t_14);
-                                      if (likely(__pyx_t_17)) {
-                                        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_14);
-                                        __Pyx_INCREF(__pyx_t_17);
-                                        __Pyx_INCREF(function);
-                                        __Pyx_DECREF_SET(__pyx_t_14, function);
-                                        __pyx_t_18 = 1;
-                                      }
-                                    }
-                                    __pyx_t_19 = PyTuple_New(2+__pyx_t_18); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L20_error;}
-                                    __Pyx_GOTREF(__pyx_t_19);
-                                    if (__pyx_t_17) {
-                                      PyTuple_SET_ITEM(__pyx_t_19, 0, __pyx_t_17); __Pyx_GIVEREF(__pyx_t_17); __pyx_t_17 = NULL;
-                                    }
-                                    PyTuple_SET_ITEM(__pyx_t_19, 0+__pyx_t_18, __pyx_t_13);
-                                    __Pyx_GIVEREF(__pyx_t_13);
-                                    PyTuple_SET_ITEM(__pyx_t_19, 1+__pyx_t_18, __pyx_t_9);
-                                    __Pyx_GIVEREF(__pyx_t_9);
-                                    __pyx_t_13 = 0;
-                                    __pyx_t_9 = 0;
-                                    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_14, __pyx_t_19, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L20_error;}
-                                    __Pyx_GOTREF(__pyx_t_2);
-                                    __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
-                                    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-                                    if (__Pyx_PrintOne(0, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L20_error;}
+                                    __pyx_t_17 = __pyx_v_j;
+                                    __pyx_t_8 = __Pyx_GetItemInt(PyList_GET_ITEM(__pyx_v_thread_counts, __pyx_v_thid), 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(__pyx_t_8 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;};
+                                    __Pyx_GOTREF(__pyx_t_8);
+                                    __pyx_t_12 = __Pyx_PyInt_From_Py_intptr_t(__pyx_t_17); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __Pyx_GOTREF(__pyx_t_12);
+                                    __pyx_t_2 = PyObject_RichCompare(__pyx_t_12, __pyx_t_8, Py_LT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+                                    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
                                     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+                                    if (__pyx_t_6) {
+                                      __pyx_t_2 = __Pyx_PyInt_From_Py_intptr_t(__pyx_t_17); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                      __Pyx_GOTREF(__pyx_t_2);
+                                      __pyx_t_13 = __pyx_t_2;
+                                      __pyx_t_2 = 0;
+                                    } else {
+                                      __Pyx_INCREF(__pyx_t_8);
+                                      __pyx_t_13 = __pyx_t_8;
+                                    }
+                                    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+                                    __pyx_t_17 = __pyx_v_j;
+                                    __pyx_t_8 = __Pyx_GetItemInt(PyList_GET_ITEM(__pyx_v_thread_counts, __pyx_v_thid), 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(__pyx_t_8 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;};
+                                    __Pyx_GOTREF(__pyx_t_8);
+                                    __pyx_t_12 = __Pyx_PyInt_From_Py_intptr_t(__pyx_t_17); if (unlikely(!__pyx_t_12)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __Pyx_GOTREF(__pyx_t_12);
+                                    __pyx_t_18 = PyObject_RichCompare(__pyx_t_12, __pyx_t_8, Py_GT); __Pyx_XGOTREF(__pyx_t_18); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+                                    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_18); if (unlikely(__pyx_t_6 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
+                                    if (__pyx_t_6) {
+                                      __pyx_t_18 = __Pyx_PyInt_From_Py_intptr_t(__pyx_t_17); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                      __Pyx_GOTREF(__pyx_t_18);
+                                      __pyx_t_2 = __pyx_t_18;
+                                      __pyx_t_18 = 0;
+                                    } else {
+                                      __Pyx_INCREF(__pyx_t_8);
+                                      __pyx_t_2 = __pyx_t_8;
+                                    }
+                                    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+                                    __pyx_t_8 = __Pyx_GetItemInt(PyList_GET_ITEM(__pyx_v_thread_counts, __pyx_v_thid), 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(__pyx_t_8 == NULL)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;};
+                                    __Pyx_GOTREF(__pyx_t_8);
+                                    __pyx_t_18 = PyNumber_Add(__pyx_t_8, __pyx_int_1); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __Pyx_GOTREF(__pyx_t_18);
+                                    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+                                    __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __Pyx_GOTREF(__pyx_t_8);
+                                    __Pyx_INCREF(__pyx_t_13);
+                                    PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_13);
+                                    __Pyx_GIVEREF(__pyx_t_13);
+                                    __Pyx_INCREF(__pyx_t_2);
+                                    PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_t_2);
+                                    __Pyx_GIVEREF(__pyx_t_2);
+                                    PyTuple_SET_ITEM(__pyx_t_8, 2, __pyx_t_18);
+                                    __Pyx_GIVEREF(__pyx_t_18);
+                                    __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+                                    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+                                    __pyx_t_18 = 0;
+                                    if (unlikely(__Pyx_SetItemInt(__pyx_v_thread_counts, __pyx_v_thid, __pyx_t_8, __pyx_t_5numpy_intp_t, 1, __Pyx_PyInt_From_Py_intptr_t, 1, 0, 0) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 93; __pyx_clineno = __LINE__; goto __pyx_L22_error;}
+                                    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
                                   }
 
-                                  /* "idist_cython.pyx":103
+                                  /* "idist_cython.pyx":91
  *             for j in prange(nc, schedule='static', num_threads=NUM_THREADS):
  *                 thid = openmp.omp_get_thread_num()
  *                 with gil:             # <<<<<<<<<<<<<<
  *                     psubheap = subheaps[thid] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)
- *                     print('{} thread_id = {}'.format(j, thid))
+ *                     thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)
  */
                                   /*finally:*/ {
                                     /*normal exit:*/{
                                       #ifdef WITH_THREAD
                                       PyGILState_Release(__pyx_gilstate_save);
                                       #endif
-                                      goto __pyx_L21;
+                                      goto __pyx_L23;
                                     }
-                                    __pyx_L20_error: {
+                                    __pyx_L22_error: {
                                       #ifdef WITH_THREAD
                                       PyGILState_Release(__pyx_gilstate_save);
                                       #endif
-                                      goto __pyx_L15_error;
+                                      goto __pyx_L17_error;
                                     }
-                                    __pyx_L21:;
+                                    __pyx_L23:;
                                   }
                               }
 
-                              /* "idist_cython.pyx":106
+                              /* "idist_cython.pyx":94
  *                     psubheap = subheaps[thid] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)
- *                     print('{} thread_id = {}'.format(j, thid))
+ *                     thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)
  *                 for k in range(chunk):             # <<<<<<<<<<<<<<
  *                     jk = j * chunk + k
  *                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
  */
-                              __pyx_t_20 = __pyx_v_chunk;
-                              for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_20; __pyx_t_21+=1) {
-                                __pyx_v_k = __pyx_t_21;
+                              __pyx_t_17 = __pyx_v_chunk;
+                              for (__pyx_t_19 = 0; __pyx_t_19 < __pyx_t_17; __pyx_t_19+=1) {
+                                __pyx_v_k = __pyx_t_19;
 
-                                /* "idist_cython.pyx":107
- *                     print('{} thread_id = {}'.format(j, thid))
+                                /* "idist_cython.pyx":95
+ *                     thread_counts[thid] = (min(thread_counts[thid][0], j), max(thread_counts[thid][1], j), thread_counts[thid][2] + 1)
  *                 for k in range(chunk):
  *                     jk = j * chunk + k             # <<<<<<<<<<<<<<
  *                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
- *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+ *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
  */
                                 __pyx_v_jk = ((__pyx_v_j * __pyx_v_chunk) + __pyx_v_k);
 
-                                /* "idist_cython.pyx":108
+                                /* "idist_cython.pyx":96
  *                 for k in range(chunk):
  *                     jk = j * chunk + k
  *                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)             # <<<<<<<<<<<<<<
- *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+ *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
  *             for k in range(n % chunk):
  */
-                                __pyx_t_18 = 0;
-                                __pyx_t_22 = __pyx_v_jk;
-                                __pyx_t_23 = 0;
-                                __pyx_t_24 = __pyx_f_12idist_cython_euclidean_rdist((&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) __pyx_v_Q_.data) + __pyx_t_18)) )))), (&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_X_.data + __pyx_t_22 * __pyx_v_X_.strides[0]) )) + __pyx_t_23)) )))), __pyx_v_D_); if (unlikely(__pyx_t_24 == -1.0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 108; __pyx_clineno = __LINE__; goto __pyx_L15_error;}
-                                __pyx_v_sqdistj = __pyx_t_24;
+                                __pyx_t_20 = 0;
+                                __pyx_t_21 = __pyx_v_jk;
+                                __pyx_t_22 = 0;
+                                __pyx_t_23 = __pyx_f_12idist_cython_euclidean_rdist((&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) __pyx_v_Q_.data) + __pyx_t_20)) )))), (&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_X_.data + __pyx_t_21 * __pyx_v_X_.strides[0]) )) + __pyx_t_22)) )))), __pyx_v_D_); if (unlikely(__pyx_t_23 == -1.0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 96; __pyx_clineno = __LINE__; goto __pyx_L17_error;}
+                                __pyx_v_sqdistj = __pyx_t_23;
 
-                                /* "idist_cython.pyx":109
+                                /* "idist_cython.pyx":97
  *                     jk = j * chunk + k
  *                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
- *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor             # <<<<<<<<<<<<<<
+ *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)             # <<<<<<<<<<<<<<
  *             for k in range(n % chunk):
  *                 jk = nc * chunk + k
  */
-                                __pyx_t_25 = ((struct __pyx_vtabstruct_12idist_cython_NeighborsHeap *)__pyx_v_psubheap->__pyx_vtab)->push(__pyx_v_psubheap, ((__pyx_t_12idist_cython_ITYPE_t)0), ((__pyx_t_12idist_cython_DTYPE_t)__pyx_v_sqdistj), ((__pyx_t_12idist_cython_ITYPE_t)__pyx_v_jk)); if (unlikely(__pyx_t_25 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L15_error;}
+                                __pyx_t_24 = ((struct __pyx_vtabstruct_12idist_cython_NeighborsHeap *)__pyx_v_psubheap->__pyx_vtab)->push(__pyx_v_psubheap, ((__pyx_t_12idist_cython_ITYPE_t)0), ((__pyx_t_12idist_cython_DTYPE_t)__pyx_v_sqdistj), ((__pyx_t_12idist_cython_ITYPE_t)__pyx_v_jk)); if (unlikely(__pyx_t_24 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 97; __pyx_clineno = __LINE__; goto __pyx_L17_error;}
                               }
-                              goto __pyx_L25;
-                              __pyx_L15_error:;
+                              goto __pyx_L27;
+                              __pyx_L17_error:;
                               {
                                   #ifdef WITH_THREAD
                                   PyGILState_STATE __pyx_gilstate_save = PyGILState_Ensure();
@@ -2750,19 +2807,19 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
                                   #endif
                               }
                               __pyx_parallel_why = 4;
-                              goto __pyx_L24;
-                              __pyx_L24:;
+                              goto __pyx_L26;
+                              __pyx_L26:;
                               #ifdef _OPENMP
                               #pragma omp critical(__pyx_parallel_lastprivates0)
                               #endif /* _OPENMP */
                               {
-                                  __pyx_parallel_temp0 = __pyx_v_jk;
-                                  __pyx_parallel_temp1 = __pyx_v_j;
-                                  __pyx_parallel_temp2 = __pyx_v_thid;
+                                  __pyx_parallel_temp0 = __pyx_v_sqdistj;
+                                  __pyx_parallel_temp1 = __pyx_v_jk;
+                                  __pyx_parallel_temp2 = __pyx_v_j;
                                   __pyx_parallel_temp3 = __pyx_v_k;
-                                  __pyx_parallel_temp4 = __pyx_v_sqdistj;
+                                  __pyx_parallel_temp4 = __pyx_v_thid;
                               }
-                              __pyx_L25:;
+                              __pyx_L27:;
                               #ifdef _OPENMP
                               #pragma omp flush(__pyx_parallel_why)
                               #endif /* _OPENMP */
@@ -2777,18 +2834,16 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
                       #endif
                       #endif /* _OPENMP */
                       /* Clean up any temporaries */
-                      __Pyx_XDECREF(__pyx_t_9);
-                      __pyx_t_9 = NULL;
+                      __Pyx_XDECREF(__pyx_t_12);
+                      __pyx_t_12 = NULL;
+                      __Pyx_XDECREF(__pyx_t_8);
+                      __pyx_t_8 = NULL;
                       __Pyx_XDECREF(__pyx_t_13);
                       __pyx_t_13 = NULL;
-                      __Pyx_XDECREF(__pyx_t_17);
-                      __pyx_t_17 = NULL;
-                      __Pyx_XDECREF(__pyx_t_14);
-                      __pyx_t_14 = NULL;
-                      __Pyx_XDECREF(__pyx_t_19);
-                      __pyx_t_19 = NULL;
                       __Pyx_XDECREF(__pyx_t_2);
                       __pyx_t_2 = NULL;
+                      __Pyx_XDECREF(__pyx_t_18);
+                      __pyx_t_18 = NULL;
                       #ifdef WITH_THREAD
                       PyGILState_Release(__pyx_gilstate_save);
                       #endif
@@ -2802,13 +2857,13 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
                 __pyx_parallel_why = 4;
               }
               if (__pyx_parallel_why) {
-                __pyx_v_jk = __pyx_parallel_temp0;
-                __pyx_v_j = __pyx_parallel_temp1;
-                __pyx_v_thid = __pyx_parallel_temp2;
+                __pyx_v_sqdistj = __pyx_parallel_temp0;
+                __pyx_v_jk = __pyx_parallel_temp1;
+                __pyx_v_j = __pyx_parallel_temp2;
                 __pyx_v_k = __pyx_parallel_temp3;
-                __pyx_v_sqdistj = __pyx_parallel_temp4;
+                __pyx_v_thid = __pyx_parallel_temp4;
                 switch (__pyx_parallel_why) {
-                      case 3: goto __pyx_L10_return;
+                      case 3: goto __pyx_L12_return;
                       case 4:
                   {
                       #ifdef WITH_THREAD
@@ -2821,7 +2876,7 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
                       PyGILState_Release(__pyx_gilstate_save);
                       #endif
                   }
-                  goto __pyx_L11_error;
+                  goto __pyx_L13_error;
                 }
               }
           }
@@ -2832,51 +2887,51 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
               #define unlikely(x) __builtin_expect(!!(x), 0)
           #endif
 
-          /* "idist_cython.pyx":110
+          /* "idist_cython.pyx":98
  *                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
- *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+ *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
  *             for k in range(n % chunk):             # <<<<<<<<<<<<<<
  *                 jk = nc * chunk + k
  *                 sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
  */
-          __pyx_t_25 = (__pyx_v_n % __pyx_v_chunk);
-          for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_25; __pyx_t_16+=1) {
+          __pyx_t_24 = (__pyx_v_n % __pyx_v_chunk);
+          for (__pyx_t_16 = 0; __pyx_t_16 < __pyx_t_24; __pyx_t_16+=1) {
             __pyx_v_k = __pyx_t_16;
 
-            /* "idist_cython.pyx":111
- *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+            /* "idist_cython.pyx":99
+ *                     psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
  *             for k in range(n % chunk):
  *                 jk = nc * chunk + k             # <<<<<<<<<<<<<<
  *                 sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
- *                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+ *                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
  */
             __pyx_v_jk = ((__pyx_v_nc * __pyx_v_chunk) + __pyx_v_k);
 
-            /* "idist_cython.pyx":112
+            /* "idist_cython.pyx":100
  *             for k in range(n % chunk):
  *                 jk = nc * chunk + k
  *                 sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)             # <<<<<<<<<<<<<<
- *                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+ *                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
  * 
  */
-            __pyx_t_26 = 0;
+            __pyx_t_25 = 0;
             __pyx_t_15 = __pyx_v_jk;
-            __pyx_t_27 = 0;
-            __pyx_t_24 = __pyx_f_12idist_cython_euclidean_rdist((&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) __pyx_v_Q_.data) + __pyx_t_26)) )))), (&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_X_.data + __pyx_t_15 * __pyx_v_X_.strides[0]) )) + __pyx_t_27)) )))), __pyx_v_D_); if (unlikely(__pyx_t_24 == -1.0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L11_error;}
-            __pyx_v_sqdistj = __pyx_t_24;
+            __pyx_t_26 = 0;
+            __pyx_t_23 = __pyx_f_12idist_cython_euclidean_rdist((&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) __pyx_v_Q_.data) + __pyx_t_25)) )))), (&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_X_.data + __pyx_t_15 * __pyx_v_X_.strides[0]) )) + __pyx_t_26)) )))), __pyx_v_D_); if (unlikely(__pyx_t_23 == -1.0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 100; __pyx_clineno = __LINE__; goto __pyx_L13_error;}
+            __pyx_v_sqdistj = __pyx_t_23;
 
-            /* "idist_cython.pyx":113
+            /* "idist_cython.pyx":101
  *                 jk = nc * chunk + k
  *                 sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
- *                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor             # <<<<<<<<<<<<<<
+ *                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)             # <<<<<<<<<<<<<<
  * 
- *     # consolidate the heaps
+ *     print('thread_counts = {}'.format(thread_counts))
  */
-            __pyx_t_28 = ((struct __pyx_vtabstruct_12idist_cython_NeighborsHeap *)__pyx_v_heap->__pyx_vtab)->push(__pyx_v_heap, ((__pyx_t_12idist_cython_ITYPE_t)0), ((__pyx_t_12idist_cython_DTYPE_t)__pyx_v_sqdistj), ((__pyx_t_12idist_cython_ITYPE_t)__pyx_v_jk)); if (unlikely(__pyx_t_28 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 113; __pyx_clineno = __LINE__; goto __pyx_L11_error;}
+            __pyx_t_27 = ((struct __pyx_vtabstruct_12idist_cython_NeighborsHeap *)__pyx_v_heap->__pyx_vtab)->push(__pyx_v_heap, ((__pyx_t_12idist_cython_ITYPE_t)0), ((__pyx_t_12idist_cython_DTYPE_t)__pyx_v_sqdistj), ((__pyx_t_12idist_cython_ITYPE_t)__pyx_v_jk)); if (unlikely(__pyx_t_27 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 101; __pyx_clineno = __LINE__; goto __pyx_L13_error;}
           }
         }
 
-        /* "idist_cython.pyx":100
+        /* "idist_cython.pyx":88
  *         nc = n / chunk
  * 
  *         with nogil, cython.boundscheck(False), cython.wraparound(False):             # <<<<<<<<<<<<<<
@@ -2888,26 +2943,26 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
             #ifdef WITH_THREAD
             Py_BLOCK_THREADS
             #endif
-            goto __pyx_L12;
+            goto __pyx_L14;
           }
-          __pyx_L10_return: {
+          __pyx_L12_return: {
             #ifdef WITH_THREAD
             Py_BLOCK_THREADS
             #endif
             goto __pyx_L0;
           }
-          __pyx_L11_error: {
+          __pyx_L13_error: {
             #ifdef WITH_THREAD
             Py_BLOCK_THREADS
             #endif
             goto __pyx_L1_error;
           }
-          __pyx_L12:;
+          __pyx_L14:;
         }
     }
 
-    /* "idist_cython.pyx":86
- *     #     subheaps[i] = <PyObject *>tmp
+    /* "idist_cython.pyx":74
+ *     thread_counts = [(dat[0].shape[0], 0, 0) for i in range(NUM_THREADS)]
  * 
  *     for i, mat in enumerate(dat):             # <<<<<<<<<<<<<<
  * 
@@ -2916,7 +2971,44 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "idist_cython.pyx":116
+  /* "idist_cython.pyx":103
+ *                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk)
+ * 
+ *     print('thread_counts = {}'.format(thread_counts))             # <<<<<<<<<<<<<<
+ * 
+ *     # consolidate the heaps
+ */
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_thread_counts, __pyx_n_s_format); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_8);
+  __pyx_t_18 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_8))) {
+    __pyx_t_18 = PyMethod_GET_SELF(__pyx_t_8);
+    if (likely(__pyx_t_18)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
+      __Pyx_INCREF(__pyx_t_18);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_8, function);
+    }
+  }
+  if (!__pyx_t_18) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_v_thread_counts); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+  } else {
+    __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_18); __Pyx_GIVEREF(__pyx_t_18); __pyx_t_18 = NULL;
+    __Pyx_INCREF(__pyx_v_thread_counts);
+    PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_v_thread_counts);
+    __Pyx_GIVEREF(__pyx_v_thread_counts);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  if (__Pyx_PrintOne(0, __pyx_t_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 103; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "idist_cython.pyx":106
  * 
  *     # consolidate the heaps
  *     for sh in subheaps:             # <<<<<<<<<<<<<<
@@ -2927,31 +3019,31 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   for (;;) {
     if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_1)) break;
     #if CYTHON_COMPILING_IN_CPYTHON
-    __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_8); __pyx_t_5++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     #else
-    __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 116; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 106; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     #endif
-    __Pyx_XDECREF_SET(__pyx_v_sh, __pyx_t_2);
-    __pyx_t_2 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_sh, __pyx_t_8);
+    __pyx_t_8 = 0;
 
-    /* "idist_cython.pyx":117
+    /* "idist_cython.pyx":107
  *     # consolidate the heaps
  *     for sh in subheaps:
  *         distances, indices = sh.get_arrays(sort=False)             # <<<<<<<<<<<<<<
  *         for i in range(K_):
  *             heap.push(<ITYPE_t>0, <DTYPE_t>distances[0, i], <ITYPE_t>indices[0, i])
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_sh, __pyx_n_s_get_arrays); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_sh, __pyx_n_s_get_arrays); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_8);
+    __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_14 = PyDict_New(); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_14);
-    if (PyDict_SetItem(__pyx_t_14, __pyx_n_s_sort, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __pyx_t_19 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_14); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_19);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_sort, Py_False) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_18 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_18);
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-    if ((likely(PyTuple_CheckExact(__pyx_t_19))) || (PyList_CheckExact(__pyx_t_19))) {
-      PyObject* sequence = __pyx_t_19;
+    if ((likely(PyTuple_CheckExact(__pyx_t_18))) || (PyList_CheckExact(__pyx_t_18))) {
+      PyObject* sequence = __pyx_t_18;
       #if CYTHON_COMPILING_IN_CPYTHON
       Py_ssize_t size = Py_SIZE(sequence);
       #else
@@ -2960,87 +3052,87 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
       #if CYTHON_COMPILING_IN_CPYTHON
       if (likely(PyTuple_CheckExact(sequence))) {
-        __pyx_t_14 = PyTuple_GET_ITEM(sequence, 0); 
-        __pyx_t_2 = PyTuple_GET_ITEM(sequence, 1); 
+        __pyx_t_2 = PyTuple_GET_ITEM(sequence, 0); 
+        __pyx_t_8 = PyTuple_GET_ITEM(sequence, 1); 
       } else {
-        __pyx_t_14 = PyList_GET_ITEM(sequence, 0); 
-        __pyx_t_2 = PyList_GET_ITEM(sequence, 1); 
+        __pyx_t_2 = PyList_GET_ITEM(sequence, 0); 
+        __pyx_t_8 = PyList_GET_ITEM(sequence, 1); 
       }
-      __Pyx_INCREF(__pyx_t_14);
       __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_8);
       #else
-      __pyx_t_14 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_14)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_14);
-      __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_8 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_8);
       #endif
-      __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
+      __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_9 = PyObject_GetIter(__pyx_t_19); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_9);
-      __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
-      __pyx_t_29 = Py_TYPE(__pyx_t_9)->tp_iternext;
-      index = 0; __pyx_t_14 = __pyx_t_29(__pyx_t_9); if (unlikely(!__pyx_t_14)) goto __pyx_L30_unpacking_failed;
-      __Pyx_GOTREF(__pyx_t_14);
-      index = 1; __pyx_t_2 = __pyx_t_29(__pyx_t_9); if (unlikely(!__pyx_t_2)) goto __pyx_L30_unpacking_failed;
+      __pyx_t_13 = PyObject_GetIter(__pyx_t_18); if (unlikely(!__pyx_t_13)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_13);
+      __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
+      __pyx_t_28 = Py_TYPE(__pyx_t_13)->tp_iternext;
+      index = 0; __pyx_t_2 = __pyx_t_28(__pyx_t_13); if (unlikely(!__pyx_t_2)) goto __pyx_L32_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_2);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_29(__pyx_t_9), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __pyx_t_29 = NULL;
-      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      goto __pyx_L31_unpacking_done;
-      __pyx_L30_unpacking_failed:;
-      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      __pyx_t_29 = NULL;
+      index = 1; __pyx_t_8 = __pyx_t_28(__pyx_t_13); if (unlikely(!__pyx_t_8)) goto __pyx_L32_unpacking_failed;
+      __Pyx_GOTREF(__pyx_t_8);
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_28(__pyx_t_13), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_28 = NULL;
+      __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+      goto __pyx_L33_unpacking_done;
+      __pyx_L32_unpacking_failed:;
+      __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
+      __pyx_t_28 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __pyx_L31_unpacking_done:;
+      {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_L33_unpacking_done:;
     }
-    __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_nn___pyx_t_12idist_cython_DTYPE_t(__pyx_t_14);
-    if (unlikely(!__pyx_t_11.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-    __pyx_t_30 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_nn___pyx_t_12idist_cython_ITYPE_t(__pyx_t_2);
-    if (unlikely(!__pyx_t_30.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 117; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_nn___pyx_t_12idist_cython_DTYPE_t(__pyx_t_2);
+    if (unlikely(!__pyx_t_10.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_29 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_nn___pyx_t_12idist_cython_ITYPE_t(__pyx_t_8);
+    if (unlikely(!__pyx_t_29.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 107; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __PYX_XDEC_MEMVIEW(&__pyx_v_distances, 1);
-    __pyx_v_distances = __pyx_t_11;
-    __pyx_t_11.memview = NULL;
-    __pyx_t_11.data = NULL;
+    __pyx_v_distances = __pyx_t_10;
+    __pyx_t_10.memview = NULL;
+    __pyx_t_10.data = NULL;
     __PYX_XDEC_MEMVIEW(&__pyx_v_indices, 1);
-    __pyx_v_indices = __pyx_t_30;
-    __pyx_t_30.memview = NULL;
-    __pyx_t_30.data = NULL;
+    __pyx_v_indices = __pyx_t_29;
+    __pyx_t_29.memview = NULL;
+    __pyx_t_29.data = NULL;
 
-    /* "idist_cython.pyx":118
+    /* "idist_cython.pyx":108
  *     for sh in subheaps:
  *         distances, indices = sh.get_arrays(sort=False)
  *         for i in range(K_):             # <<<<<<<<<<<<<<
  *             heap.push(<ITYPE_t>0, <DTYPE_t>distances[0, i], <ITYPE_t>indices[0, i])
  * 
  */
-    __pyx_t_25 = __pyx_v_K_;
-    for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_25; __pyx_t_7+=1) {
+    __pyx_t_24 = __pyx_v_K_;
+    for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_24; __pyx_t_7+=1) {
       __pyx_v_i = __pyx_t_7;
 
-      /* "idist_cython.pyx":119
+      /* "idist_cython.pyx":109
  *         distances, indices = sh.get_arrays(sort=False)
  *         for i in range(K_):
  *             heap.push(<ITYPE_t>0, <DTYPE_t>distances[0, i], <ITYPE_t>indices[0, i])             # <<<<<<<<<<<<<<
  * 
  *     # sqrt all of the reduced/squared distances to get Euclidean distances
  */
-      __pyx_t_31 = 0;
+      __pyx_t_30 = 0;
       __pyx_t_16 = __pyx_v_i;
-      __pyx_t_32 = 0;
-      __pyx_t_8 = __pyx_v_i;
-      __pyx_t_28 = ((struct __pyx_vtabstruct_12idist_cython_NeighborsHeap *)__pyx_v_heap->__pyx_vtab)->push(__pyx_v_heap, ((__pyx_t_12idist_cython_ITYPE_t)0), ((__pyx_t_12idist_cython_DTYPE_t)(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_distances.data + __pyx_t_31 * __pyx_v_distances.strides[0]) )) + __pyx_t_16)) )))), ((__pyx_t_12idist_cython_ITYPE_t)(*((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_32 * __pyx_v_indices.strides[0]) )) + __pyx_t_8)) ))))); if (unlikely(__pyx_t_28 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 119; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_31 = 0;
+      __pyx_t_14 = __pyx_v_i;
+      __pyx_t_27 = ((struct __pyx_vtabstruct_12idist_cython_NeighborsHeap *)__pyx_v_heap->__pyx_vtab)->push(__pyx_v_heap, ((__pyx_t_12idist_cython_ITYPE_t)0), ((__pyx_t_12idist_cython_DTYPE_t)(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_distances.data + __pyx_t_30 * __pyx_v_distances.strides[0]) )) + __pyx_t_16)) )))), ((__pyx_t_12idist_cython_ITYPE_t)(*((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_31 * __pyx_v_indices.strides[0]) )) + __pyx_t_14)) ))))); if (unlikely(__pyx_t_27 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 109; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
 
-    /* "idist_cython.pyx":116
+    /* "idist_cython.pyx":106
  * 
  *     # consolidate the heaps
  *     for sh in subheaps:             # <<<<<<<<<<<<<<
@@ -3050,62 +3142,62 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "idist_cython.pyx":122
+  /* "idist_cython.pyx":112
  * 
  *     # sqrt all of the reduced/squared distances to get Euclidean distances
  *     knn_heap = []             # <<<<<<<<<<<<<<
  *     for i in range(K_):
  *         knn_heap.append((-sqrt(heap.distances[0, i]), 0, heap.indices[0, i]))
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 122; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 112; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_knn_heap = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "idist_cython.pyx":123
+  /* "idist_cython.pyx":113
  *     # sqrt all of the reduced/squared distances to get Euclidean distances
  *     knn_heap = []
  *     for i in range(K_):             # <<<<<<<<<<<<<<
  *         knn_heap.append((-sqrt(heap.distances[0, i]), 0, heap.indices[0, i]))
  * 
  */
-  __pyx_t_25 = __pyx_v_K_;
-  for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_25; __pyx_t_7+=1) {
+  __pyx_t_24 = __pyx_v_K_;
+  for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_24; __pyx_t_7+=1) {
     __pyx_v_i = __pyx_t_7;
 
-    /* "idist_cython.pyx":124
+    /* "idist_cython.pyx":114
  *     knn_heap = []
  *     for i in range(K_):
  *         knn_heap.append((-sqrt(heap.distances[0, i]), 0, heap.indices[0, i]))             # <<<<<<<<<<<<<<
  * 
  *     return knn_heap
  */
-    if (unlikely(!__pyx_v_heap->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+    if (unlikely(!__pyx_v_heap->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
     __pyx_t_5 = 0;
-    __pyx_t_20 = __pyx_v_i;
-    __pyx_t_1 = PyFloat_FromDouble((-sqrt((*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_heap->distances.data + __pyx_t_5 * __pyx_v_heap->distances.strides[0]) )) + __pyx_t_20)) )))))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_17 = __pyx_v_i;
+    __pyx_t_1 = PyFloat_FromDouble((-sqrt((*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_heap->distances.data + __pyx_t_5 * __pyx_v_heap->distances.strides[0]) )) + __pyx_t_17)) )))))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    if (unlikely(!__pyx_v_heap->indices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
-    __pyx_t_33 = 0;
-    __pyx_t_21 = __pyx_v_i;
-    __pyx_t_19 = __Pyx_PyInt_From_Py_intptr_t((*((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=0 */ (__pyx_v_heap->indices.data + __pyx_t_33 * __pyx_v_heap->indices.strides[0]) )) + __pyx_t_21)) )))); if (unlikely(!__pyx_t_19)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_19);
-    __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_2);
-    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
+    if (unlikely(!__pyx_v_heap->indices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+    __pyx_t_32 = 0;
+    __pyx_t_19 = __pyx_v_i;
+    __pyx_t_18 = __Pyx_PyInt_From_Py_intptr_t((*((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=0 */ (__pyx_v_heap->indices.data + __pyx_t_32 * __pyx_v_heap->indices.strides[0]) )) + __pyx_t_19)) )))); if (unlikely(!__pyx_t_18)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_18);
+    __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_8);
+    PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_int_0);
-    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_int_0);
+    PyTuple_SET_ITEM(__pyx_t_8, 1, __pyx_int_0);
     __Pyx_GIVEREF(__pyx_int_0);
-    PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_19);
-    __Pyx_GIVEREF(__pyx_t_19);
+    PyTuple_SET_ITEM(__pyx_t_8, 2, __pyx_t_18);
+    __Pyx_GIVEREF(__pyx_t_18);
     __pyx_t_1 = 0;
-    __pyx_t_19 = 0;
-    __pyx_t_34 = __Pyx_PyList_Append(__pyx_v_knn_heap, __pyx_t_2); if (unlikely(__pyx_t_34 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 124; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_18 = 0;
+    __pyx_t_33 = __Pyx_PyList_Append(__pyx_v_knn_heap, __pyx_t_8); if (unlikely(__pyx_t_33 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 114; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
 
-  /* "idist_cython.pyx":126
+  /* "idist_cython.pyx":116
  *         knn_heap.append((-sqrt(heap.distances[0, i]), 0, heap.indices[0, i]))
  * 
  *     return knn_heap             # <<<<<<<<<<<<<<
@@ -3130,14 +3222,13 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __PYX_XDEC_MEMVIEW(&__pyx_t_4, 1);
-  __Pyx_XDECREF(__pyx_t_9);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
+  __Pyx_XDECREF(__pyx_t_8);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
+  __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_12);
   __Pyx_XDECREF(__pyx_t_13);
-  __Pyx_XDECREF(__pyx_t_14);
-  __Pyx_XDECREF(__pyx_t_17);
-  __Pyx_XDECREF(__pyx_t_19);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_30, 1);
+  __Pyx_XDECREF(__pyx_t_18);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_29, 1);
   __Pyx_AddTraceback("idist_cython.knn_search_sequential", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -3148,6 +3239,7 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   __Pyx_XDECREF((PyObject *)__pyx_v_heap);
   __Pyx_XDECREF((PyObject *)__pyx_v_psubheap);
   __Pyx_XDECREF(__pyx_v_subheaps);
+  __Pyx_XDECREF(__pyx_v_thread_counts);
   __Pyx_XDECREF(__pyx_v_mat);
   __Pyx_XDECREF(__pyx_v_sh);
   __Pyx_XDECREF(__pyx_v_knn_heap);
@@ -3156,7 +3248,7 @@ static PyObject *__pyx_pf_12idist_cython_2knn_search_sequential(CYTHON_UNUSED Py
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":132
+/* "idist_cython.pyx":122
  * ##################################################################################
  * 
  * cdef inline void dual_swap(DTYPE_t* darr, ITYPE_t* iarr,             # <<<<<<<<<<<<<<
@@ -3170,7 +3262,7 @@ static CYTHON_INLINE void __pyx_f_12idist_cython_dual_swap(__pyx_t_12idist_cytho
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("dual_swap", 0);
 
-  /* "idist_cython.pyx":135
+  /* "idist_cython.pyx":125
  *                            ITYPE_t i1, ITYPE_t i2):
  *     """swap the values at inex i1 and i2 of both darr and iarr"""
  *     cdef DTYPE_t dtmp = darr[i1]             # <<<<<<<<<<<<<<
@@ -3179,7 +3271,7 @@ static CYTHON_INLINE void __pyx_f_12idist_cython_dual_swap(__pyx_t_12idist_cytho
  */
   __pyx_v_dtmp = (__pyx_v_darr[__pyx_v_i1]);
 
-  /* "idist_cython.pyx":136
+  /* "idist_cython.pyx":126
  *     """swap the values at inex i1 and i2 of both darr and iarr"""
  *     cdef DTYPE_t dtmp = darr[i1]
  *     darr[i1] = darr[i2]             # <<<<<<<<<<<<<<
@@ -3188,7 +3280,7 @@ static CYTHON_INLINE void __pyx_f_12idist_cython_dual_swap(__pyx_t_12idist_cytho
  */
   (__pyx_v_darr[__pyx_v_i1]) = (__pyx_v_darr[__pyx_v_i2]);
 
-  /* "idist_cython.pyx":137
+  /* "idist_cython.pyx":127
  *     cdef DTYPE_t dtmp = darr[i1]
  *     darr[i1] = darr[i2]
  *     darr[i2] = dtmp             # <<<<<<<<<<<<<<
@@ -3197,7 +3289,7 @@ static CYTHON_INLINE void __pyx_f_12idist_cython_dual_swap(__pyx_t_12idist_cytho
  */
   (__pyx_v_darr[__pyx_v_i2]) = __pyx_v_dtmp;
 
-  /* "idist_cython.pyx":139
+  /* "idist_cython.pyx":129
  *     darr[i2] = dtmp
  * 
  *     cdef ITYPE_t itmp = iarr[i1]             # <<<<<<<<<<<<<<
@@ -3206,7 +3298,7 @@ static CYTHON_INLINE void __pyx_f_12idist_cython_dual_swap(__pyx_t_12idist_cytho
  */
   __pyx_v_itmp = (__pyx_v_iarr[__pyx_v_i1]);
 
-  /* "idist_cython.pyx":140
+  /* "idist_cython.pyx":130
  * 
  *     cdef ITYPE_t itmp = iarr[i1]
  *     iarr[i1] = iarr[i2]             # <<<<<<<<<<<<<<
@@ -3215,7 +3307,7 @@ static CYTHON_INLINE void __pyx_f_12idist_cython_dual_swap(__pyx_t_12idist_cytho
  */
   (__pyx_v_iarr[__pyx_v_i1]) = (__pyx_v_iarr[__pyx_v_i2]);
 
-  /* "idist_cython.pyx":141
+  /* "idist_cython.pyx":131
  *     cdef ITYPE_t itmp = iarr[i1]
  *     iarr[i1] = iarr[i2]
  *     iarr[i2] = itmp             # <<<<<<<<<<<<<<
@@ -3224,7 +3316,7 @@ static CYTHON_INLINE void __pyx_f_12idist_cython_dual_swap(__pyx_t_12idist_cytho
  */
   (__pyx_v_iarr[__pyx_v_i2]) = __pyx_v_itmp;
 
-  /* "idist_cython.pyx":132
+  /* "idist_cython.pyx":122
  * ##################################################################################
  * 
  * cdef inline void dual_swap(DTYPE_t* darr, ITYPE_t* iarr,             # <<<<<<<<<<<<<<
@@ -3236,7 +3328,7 @@ static CYTHON_INLINE void __pyx_f_12idist_cython_dual_swap(__pyx_t_12idist_cytho
   __Pyx_RefNannyFinishContext();
 }
 
-/* "idist_cython.pyx":165
+/* "idist_cython.pyx":155
  *     cdef ITYPE_t[:, ::1] indices
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -3273,67 +3365,67 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap___cinit__(struct __pyx_obj_12
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__cinit__", 0);
 
-  /* "idist_cython.pyx":166
+  /* "idist_cython.pyx":156
  * 
  *     def __cinit__(self):
  *         self.distances_arr = np.zeros((1, 1), dtype=DTYPE, order='C')             # <<<<<<<<<<<<<<
  *         self.indices_arr = np.zeros((1, 1), dtype=ITYPE, order='C')
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_3) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__3, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__3, __pyx_t_1); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!(likely(((__pyx_t_3) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_3, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GIVEREF(__pyx_t_3);
   __Pyx_GOTREF(__pyx_v_self->distances_arr);
   __Pyx_DECREF(((PyObject *)__pyx_v_self->distances_arr));
   __pyx_v_self->distances_arr = ((PyArrayObject *)__pyx_t_3);
   __pyx_t_3 = 0;
 
-  /* "idist_cython.pyx":167
+  /* "idist_cython.pyx":157
  *     def __cinit__(self):
  *         self.distances_arr = np.zeros((1, 1), dtype=DTYPE, order='C')
  *         self.indices_arr = np.zeros((1, 1), dtype=ITYPE, order='C')             # <<<<<<<<<<<<<<
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_ITYPE); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_ITYPE); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__5, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__5, __pyx_t_3); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GIVEREF(__pyx_t_2);
   __Pyx_GOTREF(__pyx_v_self->indices_arr);
   __Pyx_DECREF(((PyObject *)__pyx_v_self->indices_arr));
   __pyx_v_self->indices_arr = ((PyArrayObject *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "idist_cython.pyx":168
+  /* "idist_cython.pyx":158
  *         self.distances_arr = np.zeros((1, 1), dtype=DTYPE, order='C')
  *         self.indices_arr = np.zeros((1, 1), dtype=ITYPE, order='C')
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)             # <<<<<<<<<<<<<<
@@ -3342,14 +3434,14 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap___cinit__(struct __pyx_obj_12
  */
   __pyx_t_2 = ((PyObject *)__pyx_v_self->distances_arr);
   __Pyx_INCREF(__pyx_t_2);
-  __pyx_t_4 = __pyx_f_12idist_cython_get_memview_DTYPE_2D(((PyArrayObject *)__pyx_t_2)); if (unlikely(!__pyx_t_4.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 168; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __pyx_f_12idist_cython_get_memview_DTYPE_2D(((PyArrayObject *)__pyx_t_2)); if (unlikely(!__pyx_t_4.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 158; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_self->distances, 0);
   __pyx_v_self->distances = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "idist_cython.pyx":169
+  /* "idist_cython.pyx":159
  *         self.indices_arr = np.zeros((1, 1), dtype=ITYPE, order='C')
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)             # <<<<<<<<<<<<<<
@@ -3358,14 +3450,14 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap___cinit__(struct __pyx_obj_12
  */
   __pyx_t_2 = ((PyObject *)__pyx_v_self->indices_arr);
   __Pyx_INCREF(__pyx_t_2);
-  __pyx_t_5 = __pyx_f_12idist_cython_get_memview_ITYPE_2D(((PyArrayObject *)__pyx_t_2)); if (unlikely(!__pyx_t_5.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 169; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __pyx_f_12idist_cython_get_memview_ITYPE_2D(((PyArrayObject *)__pyx_t_2)); if (unlikely(!__pyx_t_5.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 159; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_self->indices, 0);
   __pyx_v_self->indices = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "idist_cython.pyx":165
+  /* "idist_cython.pyx":155
  *     cdef ITYPE_t[:, ::1] indices
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -3389,7 +3481,7 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap___cinit__(struct __pyx_obj_12
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":171
+/* "idist_cython.pyx":161
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)
  * 
  *     def __init__(self, n_pts, n_nbrs):             # <<<<<<<<<<<<<<
@@ -3428,11 +3520,11 @@ static int __pyx_pw_12idist_cython_13NeighborsHeap_3__init__(PyObject *__pyx_v_s
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_n_nbrs)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3445,7 +3537,7 @@ static int __pyx_pw_12idist_cython_13NeighborsHeap_3__init__(PyObject *__pyx_v_s
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 171; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 161; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("idist_cython.NeighborsHeap.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3473,24 +3565,24 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap_2__init__(struct __pyx_obj_12
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "idist_cython.pyx":172
+  /* "idist_cython.pyx":162
  * 
  *     def __init__(self, n_pts, n_nbrs):
  *         self.distances_arr = np.inf + np.zeros((n_pts, n_nbrs), dtype=DTYPE,             # <<<<<<<<<<<<<<
  *                                                order='C')
  *         self.indices_arr = np.zeros((n_pts, n_nbrs), dtype=ITYPE, order='C')
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_inf); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_inf); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_n_pts);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_n_pts);
@@ -3498,47 +3590,47 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap_2__init__(struct __pyx_obj_12
   __Pyx_INCREF(__pyx_v_n_nbrs);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_n_nbrs);
   __Pyx_GIVEREF(__pyx_v_n_nbrs);
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_5) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Add(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyNumber_Add(__pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 172; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 162; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GIVEREF(__pyx_t_1);
   __Pyx_GOTREF(__pyx_v_self->distances_arr);
   __Pyx_DECREF(((PyObject *)__pyx_v_self->distances_arr));
   __pyx_v_self->distances_arr = ((PyArrayObject *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "idist_cython.pyx":174
+  /* "idist_cython.pyx":164
  *         self.distances_arr = np.inf + np.zeros((n_pts, n_nbrs), dtype=DTYPE,
  *                                                order='C')
  *         self.indices_arr = np.zeros((n_pts, n_nbrs), dtype=ITYPE, order='C')             # <<<<<<<<<<<<<<
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_n_pts);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_n_pts);
@@ -3546,31 +3638,31 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap_2__init__(struct __pyx_obj_12
   __Pyx_INCREF(__pyx_v_n_nbrs);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_n_nbrs);
   __Pyx_GIVEREF(__pyx_v_n_nbrs);
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_ITYPE); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_ITYPE); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_4) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_order, __pyx_n_s_C) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 164; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GIVEREF(__pyx_t_4);
   __Pyx_GOTREF(__pyx_v_self->indices_arr);
   __Pyx_DECREF(((PyObject *)__pyx_v_self->indices_arr));
   __pyx_v_self->indices_arr = ((PyArrayObject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "idist_cython.pyx":175
+  /* "idist_cython.pyx":165
  *                                                order='C')
  *         self.indices_arr = np.zeros((n_pts, n_nbrs), dtype=ITYPE, order='C')
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)             # <<<<<<<<<<<<<<
@@ -3579,14 +3671,14 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap_2__init__(struct __pyx_obj_12
  */
   __pyx_t_4 = ((PyObject *)__pyx_v_self->distances_arr);
   __Pyx_INCREF(__pyx_t_4);
-  __pyx_t_6 = __pyx_f_12idist_cython_get_memview_DTYPE_2D(((PyArrayObject *)__pyx_t_4)); if (unlikely(!__pyx_t_6.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_6 = __pyx_f_12idist_cython_get_memview_DTYPE_2D(((PyArrayObject *)__pyx_t_4)); if (unlikely(!__pyx_t_6.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 165; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_self->distances, 0);
   __pyx_v_self->distances = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "idist_cython.pyx":176
+  /* "idist_cython.pyx":166
  *         self.indices_arr = np.zeros((n_pts, n_nbrs), dtype=ITYPE, order='C')
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)             # <<<<<<<<<<<<<<
@@ -3595,14 +3687,14 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap_2__init__(struct __pyx_obj_12
  */
   __pyx_t_4 = ((PyObject *)__pyx_v_self->indices_arr);
   __Pyx_INCREF(__pyx_t_4);
-  __pyx_t_7 = __pyx_f_12idist_cython_get_memview_ITYPE_2D(((PyArrayObject *)__pyx_t_4)); if (unlikely(!__pyx_t_7.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_7 = __pyx_f_12idist_cython_get_memview_ITYPE_2D(((PyArrayObject *)__pyx_t_4)); if (unlikely(!__pyx_t_7.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __PYX_XDEC_MEMVIEW(&__pyx_v_self->indices, 0);
   __pyx_v_self->indices = __pyx_t_7;
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "idist_cython.pyx":171
+  /* "idist_cython.pyx":161
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)
  * 
  *     def __init__(self, n_pts, n_nbrs):             # <<<<<<<<<<<<<<
@@ -3628,7 +3720,7 @@ static int __pyx_pf_12idist_cython_13NeighborsHeap_2__init__(struct __pyx_obj_12
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":178
+/* "idist_cython.pyx":168
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)
  * 
  *     def get_arrays(self, sort=True):             # <<<<<<<<<<<<<<
@@ -3668,7 +3760,7 @@ static PyObject *__pyx_pw_12idist_cython_13NeighborsHeap_5get_arrays(PyObject *_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_arrays") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_arrays") < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 168; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -3681,7 +3773,7 @@ static PyObject *__pyx_pw_12idist_cython_13NeighborsHeap_5get_arrays(PyObject *_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_arrays", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 178; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
+  __Pyx_RaiseArgtupleInvalid("get_arrays", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); {__pyx_filename = __pyx_f[0]; __pyx_lineno = 168; __pyx_clineno = __LINE__; goto __pyx_L3_error;}
   __pyx_L3_error:;
   __Pyx_AddTraceback("idist_cython.NeighborsHeap.get_arrays", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3705,29 +3797,29 @@ static PyObject *__pyx_pf_12idist_cython_13NeighborsHeap_4get_arrays(struct __py
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_arrays", 0);
 
-  /* "idist_cython.pyx":184
+  /* "idist_cython.pyx":174
  *         so the closer points are listed first.
  *         """
  *         if sort:             # <<<<<<<<<<<<<<
  *             self._sort()
  *         return self.distances_arr, self.indices_arr
  */
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_sort); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 184; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_sort); if (unlikely(__pyx_t_1 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 174; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (__pyx_t_1) {
 
-    /* "idist_cython.pyx":185
+    /* "idist_cython.pyx":175
  *         """
  *         if sort:
  *             self._sort()             # <<<<<<<<<<<<<<
  *         return self.distances_arr, self.indices_arr
  * 
  */
-    __pyx_t_2 = ((struct __pyx_vtabstruct_12idist_cython_NeighborsHeap *)__pyx_v_self->__pyx_vtab)->_sort(__pyx_v_self); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = ((struct __pyx_vtabstruct_12idist_cython_NeighborsHeap *)__pyx_v_self->__pyx_vtab)->_sort(__pyx_v_self); if (unlikely(__pyx_t_2 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 175; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     goto __pyx_L3;
   }
   __pyx_L3:;
 
-  /* "idist_cython.pyx":186
+  /* "idist_cython.pyx":176
  *         if sort:
  *             self._sort()
  *         return self.distances_arr, self.indices_arr             # <<<<<<<<<<<<<<
@@ -3735,7 +3827,7 @@ static PyObject *__pyx_pf_12idist_cython_13NeighborsHeap_4get_arrays(struct __py
  *     cdef inline DTYPE_t largest(self, ITYPE_t row) except -1:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 176; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(((PyObject *)__pyx_v_self->distances_arr));
   PyTuple_SET_ITEM(__pyx_t_3, 0, ((PyObject *)__pyx_v_self->distances_arr));
@@ -3747,7 +3839,7 @@ static PyObject *__pyx_pf_12idist_cython_13NeighborsHeap_4get_arrays(struct __py
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "idist_cython.pyx":178
+  /* "idist_cython.pyx":168
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)
  * 
  *     def get_arrays(self, sort=True):             # <<<<<<<<<<<<<<
@@ -3766,7 +3858,7 @@ static PyObject *__pyx_pf_12idist_cython_13NeighborsHeap_4get_arrays(struct __py
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":188
+/* "idist_cython.pyx":178
  *         return self.distances_arr, self.indices_arr
  * 
  *     cdef inline DTYPE_t largest(self, ITYPE_t row) except -1:             # <<<<<<<<<<<<<<
@@ -3784,20 +3876,20 @@ static CYTHON_INLINE __pyx_t_12idist_cython_DTYPE_t __pyx_f_12idist_cython_13Nei
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("largest", 0);
 
-  /* "idist_cython.pyx":190
+  /* "idist_cython.pyx":180
  *     cdef inline DTYPE_t largest(self, ITYPE_t row) except -1:
  *         """Return the largest distance in the given row"""
  *         return self.distances[row, 0]             # <<<<<<<<<<<<<<
  * 
  *     cdef int push(self, ITYPE_t row, DTYPE_t val, ITYPE_t i_val) nogil except -1:
  */
-  if (unlikely(!__pyx_v_self->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 190; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+  if (unlikely(!__pyx_v_self->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 180; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
   __pyx_t_1 = __pyx_v_row;
   __pyx_t_2 = 0;
   __pyx_r = (*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_self->distances.data + __pyx_t_1 * __pyx_v_self->distances.strides[0]) )) + __pyx_t_2)) )));
   goto __pyx_L0;
 
-  /* "idist_cython.pyx":188
+  /* "idist_cython.pyx":178
  *         return self.distances_arr, self.indices_arr
  * 
  *     cdef inline DTYPE_t largest(self, ITYPE_t row) except -1:             # <<<<<<<<<<<<<<
@@ -3814,7 +3906,7 @@ static CYTHON_INLINE __pyx_t_12idist_cython_DTYPE_t __pyx_f_12idist_cython_13Nei
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":192
+/* "idist_cython.pyx":182
  *         return self.distances[row, 0]
  * 
  *     cdef int push(self, ITYPE_t row, DTYPE_t val, ITYPE_t i_val) nogil except -1:             # <<<<<<<<<<<<<<
@@ -3840,41 +3932,41 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
 
-  /* "idist_cython.pyx":195
+  /* "idist_cython.pyx":185
  *         """push (val, i_val) into the given row"""
  *         cdef ITYPE_t i, ic1, ic2, i_swap
  *         cdef ITYPE_t size = self.distances.shape[1]             # <<<<<<<<<<<<<<
  *         cdef DTYPE_t* dist_arr = &self.distances[row, 0]
  *         cdef ITYPE_t* ind_arr = &self.indices[row, 0]
  */
-  if (unlikely(!__pyx_v_self->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 195; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+  if (unlikely(!__pyx_v_self->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 185; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
   __pyx_v_size = (__pyx_v_self->distances.shape[1]);
 
-  /* "idist_cython.pyx":196
+  /* "idist_cython.pyx":186
  *         cdef ITYPE_t i, ic1, ic2, i_swap
  *         cdef ITYPE_t size = self.distances.shape[1]
  *         cdef DTYPE_t* dist_arr = &self.distances[row, 0]             # <<<<<<<<<<<<<<
  *         cdef ITYPE_t* ind_arr = &self.indices[row, 0]
  * 
  */
-  if (unlikely(!__pyx_v_self->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 196; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+  if (unlikely(!__pyx_v_self->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 186; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
   __pyx_t_1 = __pyx_v_row;
   __pyx_t_2 = 0;
   __pyx_v_dist_arr = (&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_self->distances.data + __pyx_t_1 * __pyx_v_self->distances.strides[0]) )) + __pyx_t_2)) ))));
 
-  /* "idist_cython.pyx":197
+  /* "idist_cython.pyx":187
  *         cdef ITYPE_t size = self.distances.shape[1]
  *         cdef DTYPE_t* dist_arr = &self.distances[row, 0]
  *         cdef ITYPE_t* ind_arr = &self.indices[row, 0]             # <<<<<<<<<<<<<<
  * 
  *         # check if val should be in heap
  */
-  if (unlikely(!__pyx_v_self->indices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 197; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+  if (unlikely(!__pyx_v_self->indices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 187; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
   __pyx_t_3 = __pyx_v_row;
   __pyx_t_4 = 0;
   __pyx_v_ind_arr = (&(*((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=0 */ (__pyx_v_self->indices.data + __pyx_t_3 * __pyx_v_self->indices.strides[0]) )) + __pyx_t_4)) ))));
 
-  /* "idist_cython.pyx":200
+  /* "idist_cython.pyx":190
  * 
  *         # check if val should be in heap
  *         if val > dist_arr[0]:             # <<<<<<<<<<<<<<
@@ -3884,7 +3976,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
   __pyx_t_5 = ((__pyx_v_val > (__pyx_v_dist_arr[0])) != 0);
   if (__pyx_t_5) {
 
-    /* "idist_cython.pyx":201
+    /* "idist_cython.pyx":191
  *         # check if val should be in heap
  *         if val > dist_arr[0]:
  *             return 0             # <<<<<<<<<<<<<<
@@ -3895,7 +3987,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
     goto __pyx_L0;
   }
 
-  /* "idist_cython.pyx":204
+  /* "idist_cython.pyx":194
  * 
  *         # insert val at position zero
  *         dist_arr[0] = val             # <<<<<<<<<<<<<<
@@ -3904,7 +3996,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
   (__pyx_v_dist_arr[0]) = __pyx_v_val;
 
-  /* "idist_cython.pyx":205
+  /* "idist_cython.pyx":195
  *         # insert val at position zero
  *         dist_arr[0] = val
  *         ind_arr[0] = i_val             # <<<<<<<<<<<<<<
@@ -3913,7 +4005,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
   (__pyx_v_ind_arr[0]) = __pyx_v_i_val;
 
-  /* "idist_cython.pyx":208
+  /* "idist_cython.pyx":198
  * 
  *         #descend the heap, swapping values until the max heap criterion is met
  *         i = 0             # <<<<<<<<<<<<<<
@@ -3922,7 +4014,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
   __pyx_v_i = 0;
 
-  /* "idist_cython.pyx":209
+  /* "idist_cython.pyx":199
  *         #descend the heap, swapping values until the max heap criterion is met
  *         i = 0
  *         while True:             # <<<<<<<<<<<<<<
@@ -3931,7 +4023,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
   while (1) {
 
-    /* "idist_cython.pyx":210
+    /* "idist_cython.pyx":200
  *         i = 0
  *         while True:
  *             ic1 = 2 * i + 1             # <<<<<<<<<<<<<<
@@ -3940,7 +4032,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
     __pyx_v_ic1 = ((2 * __pyx_v_i) + 1);
 
-    /* "idist_cython.pyx":211
+    /* "idist_cython.pyx":201
  *         while True:
  *             ic1 = 2 * i + 1
  *             ic2 = ic1 + 1             # <<<<<<<<<<<<<<
@@ -3949,7 +4041,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
     __pyx_v_ic2 = (__pyx_v_ic1 + 1);
 
-    /* "idist_cython.pyx":213
+    /* "idist_cython.pyx":203
  *             ic2 = ic1 + 1
  * 
  *             if ic1 >= size:             # <<<<<<<<<<<<<<
@@ -3959,7 +4051,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
     __pyx_t_5 = ((__pyx_v_ic1 >= __pyx_v_size) != 0);
     if (__pyx_t_5) {
 
-      /* "idist_cython.pyx":214
+      /* "idist_cython.pyx":204
  * 
  *             if ic1 >= size:
  *                 break             # <<<<<<<<<<<<<<
@@ -3969,7 +4061,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
       goto __pyx_L5_break;
     }
 
-    /* "idist_cython.pyx":215
+    /* "idist_cython.pyx":205
  *             if ic1 >= size:
  *                 break
  *             elif ic2 >= size:             # <<<<<<<<<<<<<<
@@ -3979,7 +4071,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
     __pyx_t_5 = ((__pyx_v_ic2 >= __pyx_v_size) != 0);
     if (__pyx_t_5) {
 
-      /* "idist_cython.pyx":216
+      /* "idist_cython.pyx":206
  *                 break
  *             elif ic2 >= size:
  *                 if dist_arr[ic1] > val:             # <<<<<<<<<<<<<<
@@ -3989,7 +4081,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
       __pyx_t_5 = (((__pyx_v_dist_arr[__pyx_v_ic1]) > __pyx_v_val) != 0);
       if (__pyx_t_5) {
 
-        /* "idist_cython.pyx":217
+        /* "idist_cython.pyx":207
  *             elif ic2 >= size:
  *                 if dist_arr[ic1] > val:
  *                     i_swap = ic1             # <<<<<<<<<<<<<<
@@ -4001,7 +4093,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
       }
       /*else*/ {
 
-        /* "idist_cython.pyx":219
+        /* "idist_cython.pyx":209
  *                     i_swap = ic1
  *                 else:
  *                     break             # <<<<<<<<<<<<<<
@@ -4014,7 +4106,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
       goto __pyx_L6;
     }
 
-    /* "idist_cython.pyx":220
+    /* "idist_cython.pyx":210
  *                 else:
  *                     break
  *             elif dist_arr[ic1] >= dist_arr[ic2]:             # <<<<<<<<<<<<<<
@@ -4024,7 +4116,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
     __pyx_t_5 = (((__pyx_v_dist_arr[__pyx_v_ic1]) >= (__pyx_v_dist_arr[__pyx_v_ic2])) != 0);
     if (__pyx_t_5) {
 
-      /* "idist_cython.pyx":221
+      /* "idist_cython.pyx":211
  *                     break
  *             elif dist_arr[ic1] >= dist_arr[ic2]:
  *                 if val < dist_arr[ic1]:             # <<<<<<<<<<<<<<
@@ -4034,7 +4126,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
       __pyx_t_5 = ((__pyx_v_val < (__pyx_v_dist_arr[__pyx_v_ic1])) != 0);
       if (__pyx_t_5) {
 
-        /* "idist_cython.pyx":222
+        /* "idist_cython.pyx":212
  *             elif dist_arr[ic1] >= dist_arr[ic2]:
  *                 if val < dist_arr[ic1]:
  *                     i_swap = ic1             # <<<<<<<<<<<<<<
@@ -4046,7 +4138,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
       }
       /*else*/ {
 
-        /* "idist_cython.pyx":224
+        /* "idist_cython.pyx":214
  *                     i_swap = ic1
  *                 else:
  *                     break             # <<<<<<<<<<<<<<
@@ -4060,7 +4152,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
     }
     /*else*/ {
 
-      /* "idist_cython.pyx":226
+      /* "idist_cython.pyx":216
  *                     break
  *             else:
  *                 if val < dist_arr[ic2]:             # <<<<<<<<<<<<<<
@@ -4070,7 +4162,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
       __pyx_t_5 = ((__pyx_v_val < (__pyx_v_dist_arr[__pyx_v_ic2])) != 0);
       if (__pyx_t_5) {
 
-        /* "idist_cython.pyx":227
+        /* "idist_cython.pyx":217
  *             else:
  *                 if val < dist_arr[ic2]:
  *                     i_swap = ic2             # <<<<<<<<<<<<<<
@@ -4082,7 +4174,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
       }
       /*else*/ {
 
-        /* "idist_cython.pyx":229
+        /* "idist_cython.pyx":219
  *                     i_swap = ic2
  *                 else:
  *                     break             # <<<<<<<<<<<<<<
@@ -4095,7 +4187,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
     }
     __pyx_L6:;
 
-    /* "idist_cython.pyx":231
+    /* "idist_cython.pyx":221
  *                     break
  * 
  *             dist_arr[i] = dist_arr[i_swap]             # <<<<<<<<<<<<<<
@@ -4104,7 +4196,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
     (__pyx_v_dist_arr[__pyx_v_i]) = (__pyx_v_dist_arr[__pyx_v_i_swap]);
 
-    /* "idist_cython.pyx":232
+    /* "idist_cython.pyx":222
  * 
  *             dist_arr[i] = dist_arr[i_swap]
  *             ind_arr[i] = ind_arr[i_swap]             # <<<<<<<<<<<<<<
@@ -4113,7 +4205,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
     (__pyx_v_ind_arr[__pyx_v_i]) = (__pyx_v_ind_arr[__pyx_v_i_swap]);
 
-    /* "idist_cython.pyx":234
+    /* "idist_cython.pyx":224
  *             ind_arr[i] = ind_arr[i_swap]
  * 
  *             i = i_swap             # <<<<<<<<<<<<<<
@@ -4124,7 +4216,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
   }
   __pyx_L5_break:;
 
-  /* "idist_cython.pyx":236
+  /* "idist_cython.pyx":226
  *             i = i_swap
  * 
  *         dist_arr[i] = val             # <<<<<<<<<<<<<<
@@ -4133,7 +4225,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
   (__pyx_v_dist_arr[__pyx_v_i]) = __pyx_v_val;
 
-  /* "idist_cython.pyx":237
+  /* "idist_cython.pyx":227
  * 
  *         dist_arr[i] = val
  *         ind_arr[i] = i_val             # <<<<<<<<<<<<<<
@@ -4142,7 +4234,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
  */
   (__pyx_v_ind_arr[__pyx_v_i]) = __pyx_v_i_val;
 
-  /* "idist_cython.pyx":239
+  /* "idist_cython.pyx":229
  *         ind_arr[i] = i_val
  * 
  *         return 0             # <<<<<<<<<<<<<<
@@ -4152,7 +4244,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
   __pyx_r = 0;
   goto __pyx_L0;
 
-  /* "idist_cython.pyx":192
+  /* "idist_cython.pyx":182
  *         return self.distances[row, 0]
  * 
  *     cdef int push(self, ITYPE_t row, DTYPE_t val, ITYPE_t i_val) nogil except -1:             # <<<<<<<<<<<<<<
@@ -4176,7 +4268,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap_push(struct __pyx_obj_12idist_
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":241
+/* "idist_cython.pyx":231
  *         return 0
  * 
  *     cdef int _sort(self) except -1:             # <<<<<<<<<<<<<<
@@ -4204,35 +4296,35 @@ static int __pyx_f_12idist_cython_13NeighborsHeap__sort(struct __pyx_obj_12idist
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_sort", 0);
 
-  /* "idist_cython.pyx":243
+  /* "idist_cython.pyx":233
  *     cdef int _sort(self) except -1:
  *         """simultaneously sort the distances and indices"""
  *         cdef DTYPE_t[:, ::1] distances = self.distances             # <<<<<<<<<<<<<<
  *         cdef ITYPE_t[:, ::1] indices = self.indices
  *         cdef ITYPE_t row
  */
-  if (unlikely(!__pyx_v_self->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 243; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+  if (unlikely(!__pyx_v_self->distances.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 233; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
   __pyx_t_1 = __pyx_v_self->distances;
   __PYX_INC_MEMVIEW(&__pyx_t_1, 1);
   __pyx_v_distances = __pyx_t_1;
   __pyx_t_1.memview = NULL;
   __pyx_t_1.data = NULL;
 
-  /* "idist_cython.pyx":244
+  /* "idist_cython.pyx":234
  *         """simultaneously sort the distances and indices"""
  *         cdef DTYPE_t[:, ::1] distances = self.distances
  *         cdef ITYPE_t[:, ::1] indices = self.indices             # <<<<<<<<<<<<<<
  *         cdef ITYPE_t row
  *         for row in range(distances.shape[0]):
  */
-  if (unlikely(!__pyx_v_self->indices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 244; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
+  if (unlikely(!__pyx_v_self->indices.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");{__pyx_filename = __pyx_f[0]; __pyx_lineno = 234; __pyx_clineno = __LINE__; goto __pyx_L1_error;}}
   __pyx_t_2 = __pyx_v_self->indices;
   __PYX_INC_MEMVIEW(&__pyx_t_2, 1);
   __pyx_v_indices = __pyx_t_2;
   __pyx_t_2.memview = NULL;
   __pyx_t_2.data = NULL;
 
-  /* "idist_cython.pyx":246
+  /* "idist_cython.pyx":236
  *         cdef ITYPE_t[:, ::1] indices = self.indices
  *         cdef ITYPE_t row
  *         for row in range(distances.shape[0]):             # <<<<<<<<<<<<<<
@@ -4243,7 +4335,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap__sort(struct __pyx_obj_12idist
   for (__pyx_t_4 = 0; __pyx_t_4 < __pyx_t_3; __pyx_t_4+=1) {
     __pyx_v_row = __pyx_t_4;
 
-    /* "idist_cython.pyx":247
+    /* "idist_cython.pyx":237
  *         cdef ITYPE_t row
  *         for row in range(distances.shape[0]):
  *             _simultaneous_sort(&distances[row, 0],             # <<<<<<<<<<<<<<
@@ -4253,7 +4345,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap__sort(struct __pyx_obj_12idist
     __pyx_t_5 = __pyx_v_row;
     __pyx_t_6 = 0;
 
-    /* "idist_cython.pyx":248
+    /* "idist_cython.pyx":238
  *         for row in range(distances.shape[0]):
  *             _simultaneous_sort(&distances[row, 0],
  *                                &indices[row, 0],             # <<<<<<<<<<<<<<
@@ -4263,17 +4355,17 @@ static int __pyx_f_12idist_cython_13NeighborsHeap__sort(struct __pyx_obj_12idist
     __pyx_t_7 = __pyx_v_row;
     __pyx_t_8 = 0;
 
-    /* "idist_cython.pyx":247
+    /* "idist_cython.pyx":237
  *         cdef ITYPE_t row
  *         for row in range(distances.shape[0]):
  *             _simultaneous_sort(&distances[row, 0],             # <<<<<<<<<<<<<<
  *                                &indices[row, 0],
  *                                distances.shape[1])
  */
-    __pyx_t_9 = __pyx_f_12idist_cython__simultaneous_sort((&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_distances.data + __pyx_t_5 * __pyx_v_distances.strides[0]) )) + __pyx_t_6)) )))), (&(*((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_7 * __pyx_v_indices.strides[0]) )) + __pyx_t_8)) )))), (__pyx_v_distances.shape[1])); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 247; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = __pyx_f_12idist_cython__simultaneous_sort((&(*((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_DTYPE_t *) ( /* dim=0 */ (__pyx_v_distances.data + __pyx_t_5 * __pyx_v_distances.strides[0]) )) + __pyx_t_6)) )))), (&(*((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=1 */ ((char *) (((__pyx_t_12idist_cython_ITYPE_t *) ( /* dim=0 */ (__pyx_v_indices.data + __pyx_t_7 * __pyx_v_indices.strides[0]) )) + __pyx_t_8)) )))), (__pyx_v_distances.shape[1])); if (unlikely(__pyx_t_9 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 237; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
 
-  /* "idist_cython.pyx":250
+  /* "idist_cython.pyx":240
  *                                &indices[row, 0],
  *                                distances.shape[1])
  *         return 0             # <<<<<<<<<<<<<<
@@ -4283,7 +4375,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap__sort(struct __pyx_obj_12idist
   __pyx_r = 0;
   goto __pyx_L0;
 
-  /* "idist_cython.pyx":241
+  /* "idist_cython.pyx":231
  *         return 0
  * 
  *     cdef int _sort(self) except -1:             # <<<<<<<<<<<<<<
@@ -4304,7 +4396,7 @@ static int __pyx_f_12idist_cython_13NeighborsHeap__sort(struct __pyx_obj_12idist
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":253
+/* "idist_cython.pyx":243
  * 
  * 
  * cdef int _simultaneous_sort(DTYPE_t* dist, ITYPE_t* idx,             # <<<<<<<<<<<<<<
@@ -4328,7 +4420,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("_simultaneous_sort", 0);
 
-  /* "idist_cython.pyx":268
+  /* "idist_cython.pyx":258
  * 
  *     # in the small-array case, do things efficiently
  *     if size <= 1:             # <<<<<<<<<<<<<<
@@ -4340,7 +4432,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     goto __pyx_L3;
   }
 
-  /* "idist_cython.pyx":270
+  /* "idist_cython.pyx":260
  *     if size <= 1:
  *         pass
  *     elif size == 2:             # <<<<<<<<<<<<<<
@@ -4350,7 +4442,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
   __pyx_t_1 = ((__pyx_v_size == 2) != 0);
   if (__pyx_t_1) {
 
-    /* "idist_cython.pyx":271
+    /* "idist_cython.pyx":261
  *         pass
  *     elif size == 2:
  *         if dist[0] > dist[1]:             # <<<<<<<<<<<<<<
@@ -4360,7 +4452,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     __pyx_t_1 = (((__pyx_v_dist[0]) > (__pyx_v_dist[1])) != 0);
     if (__pyx_t_1) {
 
-      /* "idist_cython.pyx":272
+      /* "idist_cython.pyx":262
  *     elif size == 2:
  *         if dist[0] > dist[1]:
  *             dual_swap(dist, idx, 0, 1)             # <<<<<<<<<<<<<<
@@ -4374,7 +4466,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     goto __pyx_L3;
   }
 
-  /* "idist_cython.pyx":273
+  /* "idist_cython.pyx":263
  *         if dist[0] > dist[1]:
  *             dual_swap(dist, idx, 0, 1)
  *     elif size == 3:             # <<<<<<<<<<<<<<
@@ -4384,7 +4476,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
   __pyx_t_1 = ((__pyx_v_size == 3) != 0);
   if (__pyx_t_1) {
 
-    /* "idist_cython.pyx":274
+    /* "idist_cython.pyx":264
  *             dual_swap(dist, idx, 0, 1)
  *     elif size == 3:
  *         if dist[0] > dist[1]:             # <<<<<<<<<<<<<<
@@ -4394,7 +4486,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     __pyx_t_1 = (((__pyx_v_dist[0]) > (__pyx_v_dist[1])) != 0);
     if (__pyx_t_1) {
 
-      /* "idist_cython.pyx":275
+      /* "idist_cython.pyx":265
  *     elif size == 3:
  *         if dist[0] > dist[1]:
  *             dual_swap(dist, idx, 0, 1)             # <<<<<<<<<<<<<<
@@ -4406,7 +4498,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     }
     __pyx_L5:;
 
-    /* "idist_cython.pyx":276
+    /* "idist_cython.pyx":266
  *         if dist[0] > dist[1]:
  *             dual_swap(dist, idx, 0, 1)
  *         if dist[1] > dist[2]:             # <<<<<<<<<<<<<<
@@ -4416,7 +4508,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     __pyx_t_1 = (((__pyx_v_dist[1]) > (__pyx_v_dist[2])) != 0);
     if (__pyx_t_1) {
 
-      /* "idist_cython.pyx":277
+      /* "idist_cython.pyx":267
  *             dual_swap(dist, idx, 0, 1)
  *         if dist[1] > dist[2]:
  *             dual_swap(dist, idx, 1, 2)             # <<<<<<<<<<<<<<
@@ -4425,7 +4517,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
  */
       __pyx_f_12idist_cython_dual_swap(__pyx_v_dist, __pyx_v_idx, 1, 2);
 
-      /* "idist_cython.pyx":278
+      /* "idist_cython.pyx":268
  *         if dist[1] > dist[2]:
  *             dual_swap(dist, idx, 1, 2)
  *             if dist[0] > dist[1]:             # <<<<<<<<<<<<<<
@@ -4435,7 +4527,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
       __pyx_t_1 = (((__pyx_v_dist[0]) > (__pyx_v_dist[1])) != 0);
       if (__pyx_t_1) {
 
-        /* "idist_cython.pyx":279
+        /* "idist_cython.pyx":269
  *             dual_swap(dist, idx, 1, 2)
  *             if dist[0] > dist[1]:
  *                 dual_swap(dist, idx, 0, 1)             # <<<<<<<<<<<<<<
@@ -4453,7 +4545,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
   }
   /*else*/ {
 
-    /* "idist_cython.pyx":285
+    /* "idist_cython.pyx":275
  *         # the middle (the pivot value) is moved to the end, and the largest
  *         # is moved to the pivot index.
  *         pivot_idx = size / 2             # <<<<<<<<<<<<<<
@@ -4462,7 +4554,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
  */
     __pyx_v_pivot_idx = (__pyx_v_size / 2);
 
-    /* "idist_cython.pyx":286
+    /* "idist_cython.pyx":276
  *         # is moved to the pivot index.
  *         pivot_idx = size / 2
  *         if dist[0] > dist[size - 1]:             # <<<<<<<<<<<<<<
@@ -4472,7 +4564,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     __pyx_t_1 = (((__pyx_v_dist[0]) > (__pyx_v_dist[(__pyx_v_size - 1)])) != 0);
     if (__pyx_t_1) {
 
-      /* "idist_cython.pyx":287
+      /* "idist_cython.pyx":277
  *         pivot_idx = size / 2
  *         if dist[0] > dist[size - 1]:
  *             dual_swap(dist, idx, 0, size - 1)             # <<<<<<<<<<<<<<
@@ -4484,7 +4576,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     }
     __pyx_L8:;
 
-    /* "idist_cython.pyx":288
+    /* "idist_cython.pyx":278
  *         if dist[0] > dist[size - 1]:
  *             dual_swap(dist, idx, 0, size - 1)
  *         if dist[size - 1] > dist[pivot_idx]:             # <<<<<<<<<<<<<<
@@ -4494,7 +4586,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     __pyx_t_1 = (((__pyx_v_dist[(__pyx_v_size - 1)]) > (__pyx_v_dist[__pyx_v_pivot_idx])) != 0);
     if (__pyx_t_1) {
 
-      /* "idist_cython.pyx":289
+      /* "idist_cython.pyx":279
  *             dual_swap(dist, idx, 0, size - 1)
  *         if dist[size - 1] > dist[pivot_idx]:
  *             dual_swap(dist, idx, size - 1, pivot_idx)             # <<<<<<<<<<<<<<
@@ -4503,7 +4595,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
  */
       __pyx_f_12idist_cython_dual_swap(__pyx_v_dist, __pyx_v_idx, (__pyx_v_size - 1), __pyx_v_pivot_idx);
 
-      /* "idist_cython.pyx":290
+      /* "idist_cython.pyx":280
  *         if dist[size - 1] > dist[pivot_idx]:
  *             dual_swap(dist, idx, size - 1, pivot_idx)
  *             if dist[0] > dist[size - 1]:             # <<<<<<<<<<<<<<
@@ -4513,7 +4605,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
       __pyx_t_1 = (((__pyx_v_dist[0]) > (__pyx_v_dist[(__pyx_v_size - 1)])) != 0);
       if (__pyx_t_1) {
 
-        /* "idist_cython.pyx":291
+        /* "idist_cython.pyx":281
  *             dual_swap(dist, idx, size - 1, pivot_idx)
  *             if dist[0] > dist[size - 1]:
  *                 dual_swap(dist, idx, 0, size - 1)             # <<<<<<<<<<<<<<
@@ -4528,7 +4620,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     }
     __pyx_L9:;
 
-    /* "idist_cython.pyx":292
+    /* "idist_cython.pyx":282
  *             if dist[0] > dist[size - 1]:
  *                 dual_swap(dist, idx, 0, size - 1)
  *         pivot_val = dist[size - 1]             # <<<<<<<<<<<<<<
@@ -4537,7 +4629,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
  */
     __pyx_v_pivot_val = (__pyx_v_dist[(__pyx_v_size - 1)]);
 
-    /* "idist_cython.pyx":297
+    /* "idist_cython.pyx":287
  *         # pivot_idx will contain the pivot value, everything to the left
  *         # will be smaller, and everything to the right will be larger.
  *         store_idx = 0             # <<<<<<<<<<<<<<
@@ -4546,7 +4638,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
  */
     __pyx_v_store_idx = 0;
 
-    /* "idist_cython.pyx":298
+    /* "idist_cython.pyx":288
  *         # will be smaller, and everything to the right will be larger.
  *         store_idx = 0
  *         for i in range(size - 1):             # <<<<<<<<<<<<<<
@@ -4557,7 +4649,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
       __pyx_v_i = __pyx_t_3;
 
-      /* "idist_cython.pyx":299
+      /* "idist_cython.pyx":289
  *         store_idx = 0
  *         for i in range(size - 1):
  *             if dist[i] < pivot_val:             # <<<<<<<<<<<<<<
@@ -4567,7 +4659,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
       __pyx_t_1 = (((__pyx_v_dist[__pyx_v_i]) < __pyx_v_pivot_val) != 0);
       if (__pyx_t_1) {
 
-        /* "idist_cython.pyx":300
+        /* "idist_cython.pyx":290
  *         for i in range(size - 1):
  *             if dist[i] < pivot_val:
  *                 dual_swap(dist, idx, i, store_idx)             # <<<<<<<<<<<<<<
@@ -4576,7 +4668,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
  */
         __pyx_f_12idist_cython_dual_swap(__pyx_v_dist, __pyx_v_idx, __pyx_v_i, __pyx_v_store_idx);
 
-        /* "idist_cython.pyx":301
+        /* "idist_cython.pyx":291
  *             if dist[i] < pivot_val:
  *                 dual_swap(dist, idx, i, store_idx)
  *                 store_idx += 1             # <<<<<<<<<<<<<<
@@ -4589,7 +4681,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
       __pyx_L13:;
     }
 
-    /* "idist_cython.pyx":302
+    /* "idist_cython.pyx":292
  *                 dual_swap(dist, idx, i, store_idx)
  *                 store_idx += 1
  *         dual_swap(dist, idx, store_idx, size - 1)             # <<<<<<<<<<<<<<
@@ -4598,7 +4690,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
  */
     __pyx_f_12idist_cython_dual_swap(__pyx_v_dist, __pyx_v_idx, __pyx_v_store_idx, (__pyx_v_size - 1));
 
-    /* "idist_cython.pyx":303
+    /* "idist_cython.pyx":293
  *                 store_idx += 1
  *         dual_swap(dist, idx, store_idx, size - 1)
  *         pivot_idx = store_idx             # <<<<<<<<<<<<<<
@@ -4607,7 +4699,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
  */
     __pyx_v_pivot_idx = __pyx_v_store_idx;
 
-    /* "idist_cython.pyx":306
+    /* "idist_cython.pyx":296
  * 
  *         # recursively sort each side of the pivot
  *         if pivot_idx > 1:             # <<<<<<<<<<<<<<
@@ -4617,19 +4709,19 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     __pyx_t_1 = ((__pyx_v_pivot_idx > 1) != 0);
     if (__pyx_t_1) {
 
-      /* "idist_cython.pyx":307
+      /* "idist_cython.pyx":297
  *         # recursively sort each side of the pivot
  *         if pivot_idx > 1:
  *             _simultaneous_sort(dist, idx, pivot_idx)             # <<<<<<<<<<<<<<
  *         if pivot_idx + 2 < size:
  *             _simultaneous_sort(dist + pivot_idx + 1,
  */
-      __pyx_t_4 = __pyx_f_12idist_cython__simultaneous_sort(__pyx_v_dist, __pyx_v_idx, __pyx_v_pivot_idx); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __pyx_f_12idist_cython__simultaneous_sort(__pyx_v_dist, __pyx_v_idx, __pyx_v_pivot_idx); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 297; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       goto __pyx_L14;
     }
     __pyx_L14:;
 
-    /* "idist_cython.pyx":308
+    /* "idist_cython.pyx":298
  *         if pivot_idx > 1:
  *             _simultaneous_sort(dist, idx, pivot_idx)
  *         if pivot_idx + 2 < size:             # <<<<<<<<<<<<<<
@@ -4639,21 +4731,21 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
     __pyx_t_1 = (((__pyx_v_pivot_idx + 2) < __pyx_v_size) != 0);
     if (__pyx_t_1) {
 
-      /* "idist_cython.pyx":309
+      /* "idist_cython.pyx":299
  *             _simultaneous_sort(dist, idx, pivot_idx)
  *         if pivot_idx + 2 < size:
  *             _simultaneous_sort(dist + pivot_idx + 1,             # <<<<<<<<<<<<<<
  *                                idx + pivot_idx + 1,
  *                                size - pivot_idx - 1)
  */
-      __pyx_t_4 = __pyx_f_12idist_cython__simultaneous_sort(((__pyx_v_dist + __pyx_v_pivot_idx) + 1), ((__pyx_v_idx + __pyx_v_pivot_idx) + 1), ((__pyx_v_size - __pyx_v_pivot_idx) - 1)); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 309; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __pyx_f_12idist_cython__simultaneous_sort(((__pyx_v_dist + __pyx_v_pivot_idx) + 1), ((__pyx_v_idx + __pyx_v_pivot_idx) + 1), ((__pyx_v_size - __pyx_v_pivot_idx) - 1)); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 299; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       goto __pyx_L15;
     }
     __pyx_L15:;
   }
   __pyx_L3:;
 
-  /* "idist_cython.pyx":312
+  /* "idist_cython.pyx":302
  *                                idx + pivot_idx + 1,
  *                                size - pivot_idx - 1)
  *     return 0             # <<<<<<<<<<<<<<
@@ -4663,7 +4755,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
   __pyx_r = 0;
   goto __pyx_L0;
 
-  /* "idist_cython.pyx":253
+  /* "idist_cython.pyx":243
  * 
  * 
  * cdef int _simultaneous_sort(DTYPE_t* dist, ITYPE_t* idx,             # <<<<<<<<<<<<<<
@@ -4680,7 +4772,7 @@ static int __pyx_f_12idist_cython__simultaneous_sort(__pyx_t_12idist_cython_DTYP
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":315
+/* "idist_cython.pyx":305
  * 
  * # Numpy 1.3-1.4 compatibility utilities
  * cdef DTYPE_t[:, ::1] get_memview_DTYPE_2D(             # <<<<<<<<<<<<<<
@@ -4708,11 +4800,11 @@ static __Pyx_memviewslice __pyx_f_12idist_cython_get_memview_DTYPE_2D(PyArrayObj
   __pyx_pybuffernd_X.rcbuffer = &__pyx_pybuffer_X;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo_nn___pyx_t_12idist_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 315; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo_nn___pyx_t_12idist_cython_DTYPE_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 305; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_pybuffernd_X.diminfo[0].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_X.diminfo[0].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_X.diminfo[1].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_X.diminfo[1].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[1];
 
-  /* "idist_cython.pyx":317
+  /* "idist_cython.pyx":307
  * cdef DTYPE_t[:, ::1] get_memview_DTYPE_2D(
  *                                np.ndarray[DTYPE_t, ndim=2, mode='c'] X):
  *     return <DTYPE_t[:X.shape[0], :X.shape[1]:1]> (<DTYPE_t*> X.data)             # <<<<<<<<<<<<<<
@@ -4722,27 +4814,27 @@ static __Pyx_memviewslice __pyx_f_12idist_cython_get_memview_DTYPE_2D(PyArrayObj
   __pyx_t_1 = ((__pyx_t_12idist_cython_DTYPE_t *)__pyx_v_X->data);
   if (!__pyx_t_1) {
     PyErr_SetString(PyExc_ValueError,"Cannot create cython.array from NULL pointer");
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_t_4 = __pyx_format_from_typeinfo(&__Pyx_TypeInfo_nn___pyx_t_12idist_cython_DTYPE_t);
   __pyx_t_3 = Py_BuildValue((char*) "("  __PYX_BUILD_PY_SSIZE_T  __PYX_BUILD_PY_SSIZE_T  ")", ((Py_ssize_t)(__pyx_v_X->dimensions[0])), ((Py_ssize_t)(__pyx_v_X->dimensions[1])));
-  if (unlikely(!__pyx_t_4 || !__pyx_t_3 || !PyBytes_AsString(__pyx_t_4))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_4 || !__pyx_t_3 || !PyBytes_AsString(__pyx_t_4))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_2 = __pyx_array_new(__pyx_t_3, sizeof(__pyx_t_12idist_cython_DTYPE_t), PyBytes_AS_STRING(__pyx_t_4), (char *) "c", (char *) __pyx_t_1);
-  if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_nn___pyx_t_12idist_cython_DTYPE_t(((PyObject *)__pyx_t_2));
-  if (unlikely(!__pyx_t_5.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 317; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_5.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 307; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(((PyObject *)__pyx_t_2)); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
   goto __pyx_L0;
 
-  /* "idist_cython.pyx":315
+  /* "idist_cython.pyx":305
  * 
  * # Numpy 1.3-1.4 compatibility utilities
  * cdef DTYPE_t[:, ::1] get_memview_DTYPE_2D(             # <<<<<<<<<<<<<<
@@ -4775,7 +4867,7 @@ static __Pyx_memviewslice __pyx_f_12idist_cython_get_memview_DTYPE_2D(PyArrayObj
   return __pyx_r;
 }
 
-/* "idist_cython.pyx":319
+/* "idist_cython.pyx":309
  *     return <DTYPE_t[:X.shape[0], :X.shape[1]:1]> (<DTYPE_t*> X.data)
  * 
  * cdef ITYPE_t[:, ::1] get_memview_ITYPE_2D(             # <<<<<<<<<<<<<<
@@ -4803,11 +4895,11 @@ static __Pyx_memviewslice __pyx_f_12idist_cython_get_memview_ITYPE_2D(PyArrayObj
   __pyx_pybuffernd_X.rcbuffer = &__pyx_pybuffer_X;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo_nn___pyx_t_12idist_cython_ITYPE_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 319; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_X.rcbuffer->pybuffer, (PyObject*)__pyx_v_X, &__Pyx_TypeInfo_nn___pyx_t_12idist_cython_ITYPE_t, PyBUF_FORMAT| PyBUF_C_CONTIGUOUS, 2, 0, __pyx_stack) == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 309; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_pybuffernd_X.diminfo[0].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_X.diminfo[0].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_X.diminfo[1].strides = __pyx_pybuffernd_X.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_X.diminfo[1].shape = __pyx_pybuffernd_X.rcbuffer->pybuffer.shape[1];
 
-  /* "idist_cython.pyx":321
+  /* "idist_cython.pyx":311
  * cdef ITYPE_t[:, ::1] get_memview_ITYPE_2D(
  *                                np.ndarray[ITYPE_t, ndim=2, mode='c'] X):
  *     return <ITYPE_t[:X.shape[0], :X.shape[1]:1]> (<ITYPE_t*> X.data)             # <<<<<<<<<<<<<<
@@ -4816,27 +4908,27 @@ static __Pyx_memviewslice __pyx_f_12idist_cython_get_memview_ITYPE_2D(PyArrayObj
   __pyx_t_1 = ((__pyx_t_12idist_cython_ITYPE_t *)__pyx_v_X->data);
   if (!__pyx_t_1) {
     PyErr_SetString(PyExc_ValueError,"Cannot create cython.array from NULL pointer");
-    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __pyx_t_4 = __pyx_format_from_typeinfo(&__Pyx_TypeInfo_nn___pyx_t_12idist_cython_ITYPE_t);
   __pyx_t_3 = Py_BuildValue((char*) "("  __PYX_BUILD_PY_SSIZE_T  __PYX_BUILD_PY_SSIZE_T  ")", ((Py_ssize_t)(__pyx_v_X->dimensions[0])), ((Py_ssize_t)(__pyx_v_X->dimensions[1])));
-  if (unlikely(!__pyx_t_4 || !__pyx_t_3 || !PyBytes_AsString(__pyx_t_4))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_4 || !__pyx_t_3 || !PyBytes_AsString(__pyx_t_4))) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_2 = __pyx_array_new(__pyx_t_3, sizeof(__pyx_t_12idist_cython_ITYPE_t), PyBytes_AS_STRING(__pyx_t_4), (char *) "c", (char *) __pyx_t_1);
-  if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_nn___pyx_t_12idist_cython_ITYPE_t(((PyObject *)__pyx_t_2));
-  if (unlikely(!__pyx_t_5.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 321; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (unlikely(!__pyx_t_5.memview)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 311; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(((PyObject *)__pyx_t_2)); __pyx_t_2 = 0;
   __pyx_r = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
   goto __pyx_L0;
 
-  /* "idist_cython.pyx":319
+  /* "idist_cython.pyx":309
  *     return <DTYPE_t[:X.shape[0], :X.shape[1]:1]> (<DTYPE_t*> X.data)
  * 
  * cdef ITYPE_t[:, ::1] get_memview_ITYPE_2D(             # <<<<<<<<<<<<<<
@@ -18653,7 +18745,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_MemoryError, __pyx_k_MemoryError, sizeof(__pyx_k_MemoryError), 0, 0, 1, 1},
   {&__pyx_kp_s_MemoryView_of_r_at_0x_x, __pyx_k_MemoryView_of_r_at_0x_x, sizeof(__pyx_k_MemoryView_of_r_at_0x_x), 0, 0, 1, 0},
   {&__pyx_kp_s_MemoryView_of_r_object, __pyx_k_MemoryView_of_r_object, sizeof(__pyx_k_MemoryView_of_r_object), 0, 0, 1, 0},
-  {&__pyx_n_s_NUM_THREADS, __pyx_k_NUM_THREADS, sizeof(__pyx_k_NUM_THREADS), 0, 0, 1, 1},
   {&__pyx_kp_u_Non_native_byte_order_not_suppor, __pyx_k_Non_native_byte_order_not_suppor, sizeof(__pyx_k_Non_native_byte_order_not_suppor), 0, 1, 0, 0},
   {&__pyx_n_b_O, __pyx_k_O, sizeof(__pyx_k_O), 0, 0, 0, 1},
   {&__pyx_kp_s_Out_of_bounds_on_buffer_access_a, __pyx_k_Out_of_bounds_on_buffer_access_a, sizeof(__pyx_k_Out_of_bounds_on_buffer_access_a), 0, 0, 1, 0},
@@ -18751,7 +18842,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_subheaps, __pyx_k_subheaps, sizeof(__pyx_k_subheaps), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_thid, __pyx_k_thid, sizeof(__pyx_k_thid), 0, 0, 1, 1},
-  {&__pyx_kp_s_thread_id, __pyx_k_thread_id, sizeof(__pyx_k_thread_id), 0, 0, 1, 0},
+  {&__pyx_kp_s_thread_counts, __pyx_k_thread_counts, sizeof(__pyx_k_thread_counts), 0, 0, 1, 0},
+  {&__pyx_n_s_thread_counts_2, __pyx_k_thread_counts_2, sizeof(__pyx_k_thread_counts_2), 0, 0, 1, 1},
   {&__pyx_kp_s_unable_to_allocate_array_data, __pyx_k_unable_to_allocate_array_data, sizeof(__pyx_k_unable_to_allocate_array_data), 0, 0, 1, 0},
   {&__pyx_kp_s_unable_to_allocate_shape_and_str, __pyx_k_unable_to_allocate_shape_and_str, sizeof(__pyx_k_unable_to_allocate_shape_and_str), 0, 0, 1, 0},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
@@ -18762,7 +18854,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 static int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 37; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 86; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 74; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) {__pyx_filename = __pyx_f[1]; __pyx_lineno = 802; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 142; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_builtin_Ellipsis = __Pyx_GetBuiltinName(__pyx_n_s_Ellipsis); if (!__pyx_builtin_Ellipsis) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 357; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -18783,37 +18875,37 @@ static int __Pyx_InitCachedConstants(void) {
  *     if len(dat) != 1:
  *         raise ValueError('len(dat) != 1 which is required now that we\'re using NeighborsHeap')             # <<<<<<<<<<<<<<
  * 
- *     cdef NeighborsHeap heap = NeighborsHeap(1, K_)
+ *     # the consolidated heap
  */
   __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_len_dat_1_which_is_required_now); if (unlikely(!__pyx_tuple_)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 62; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "idist_cython.pyx":166
+  /* "idist_cython.pyx":156
  * 
  *     def __cinit__(self):
  *         self.distances_arr = np.zeros((1, 1), dtype=DTYPE, order='C')             # <<<<<<<<<<<<<<
  *         self.indices_arr = np.zeros((1, 1), dtype=ITYPE, order='C')
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)
  */
-  __pyx_tuple__2 = PyTuple_Pack(2, __pyx_int_1, __pyx_int_1); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__2 = PyTuple_Pack(2, __pyx_int_1, __pyx_int_1); if (unlikely(!__pyx_tuple__2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_tuple__2); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 166; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_tuple__2); if (unlikely(!__pyx_tuple__3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 156; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "idist_cython.pyx":167
+  /* "idist_cython.pyx":157
  *     def __cinit__(self):
  *         self.distances_arr = np.zeros((1, 1), dtype=DTYPE, order='C')
  *         self.indices_arr = np.zeros((1, 1), dtype=ITYPE, order='C')             # <<<<<<<<<<<<<<
  *         self.distances = get_memview_DTYPE_2D(self.distances_arr)
  *         self.indices = get_memview_ITYPE_2D(self.indices_arr)
  */
-  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_int_1, __pyx_int_1); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_int_1, __pyx_int_1); if (unlikely(!__pyx_tuple__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_tuple__4); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 167; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_tuple__4); if (unlikely(!__pyx_tuple__5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 157; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
@@ -19025,7 +19117,7 @@ static int __Pyx_InitCachedConstants(void) {
  *     """Search sequentially through every point in dat for query_pt's K_ nearest
  *     neighbors.
  */
-  __pyx_tuple__29 = PyTuple_Pack(24, __pyx_n_s_dat, __pyx_n_s_query_pt, __pyx_n_s_K, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k, __pyx_n_s_n, __pyx_n_s_nc, __pyx_n_s_chunk, __pyx_n_s_jk, __pyx_n_s_thid, __pyx_n_s_X, __pyx_n_s_sqdistj, __pyx_n_s_D, __pyx_n_s_Q_2, __pyx_n_s_NUM_THREADS, __pyx_n_s_distances, __pyx_n_s_indices, __pyx_n_s_heap, __pyx_n_s_psubheap, __pyx_n_s_subheaps, __pyx_n_s_mat, __pyx_n_s_sh, __pyx_n_s_knn_heap); if (unlikely(!__pyx_tuple__29)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_tuple__29 = PyTuple_Pack(24, __pyx_n_s_dat, __pyx_n_s_query_pt, __pyx_n_s_K, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_k, __pyx_n_s_n, __pyx_n_s_nc, __pyx_n_s_chunk, __pyx_n_s_jk, __pyx_n_s_thid, __pyx_n_s_X, __pyx_n_s_sqdistj, __pyx_n_s_D, __pyx_n_s_Q_2, __pyx_n_s_distances, __pyx_n_s_indices, __pyx_n_s_heap, __pyx_n_s_psubheap, __pyx_n_s_subheaps, __pyx_n_s_thread_counts_2, __pyx_n_s_mat, __pyx_n_s_sh, __pyx_n_s_knn_heap); if (unlikely(!__pyx_tuple__29)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
   __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(3, 0, 24, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_quant_projects_py_idistanc, __pyx_n_s_knn_search_sequential, 47, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 47; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19198,10 +19290,10 @@ PyMODINIT_FUNC PyInit_idist_cython(void)
   __pyx_vtable_12idist_cython_NeighborsHeap.largest = (__pyx_t_12idist_cython_DTYPE_t (*)(struct __pyx_obj_12idist_cython_NeighborsHeap *, __pyx_t_12idist_cython_ITYPE_t))__pyx_f_12idist_cython_13NeighborsHeap_largest;
   __pyx_vtable_12idist_cython_NeighborsHeap.push = (int (*)(struct __pyx_obj_12idist_cython_NeighborsHeap *, __pyx_t_12idist_cython_ITYPE_t, __pyx_t_12idist_cython_DTYPE_t, __pyx_t_12idist_cython_ITYPE_t))__pyx_f_12idist_cython_13NeighborsHeap_push;
   __pyx_vtable_12idist_cython_NeighborsHeap._sort = (int (*)(struct __pyx_obj_12idist_cython_NeighborsHeap *))__pyx_f_12idist_cython_13NeighborsHeap__sort;
-  if (PyType_Ready(&__pyx_type_12idist_cython_NeighborsHeap) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyType_Ready(&__pyx_type_12idist_cython_NeighborsHeap) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type_12idist_cython_NeighborsHeap.tp_print = 0;
-  if (__Pyx_SetVtable(__pyx_type_12idist_cython_NeighborsHeap.tp_dict, __pyx_vtabptr_12idist_cython_NeighborsHeap) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  if (PyObject_SetAttrString(__pyx_m, "NeighborsHeap", (PyObject *)&__pyx_type_12idist_cython_NeighborsHeap) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 144; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (__Pyx_SetVtable(__pyx_type_12idist_cython_NeighborsHeap.tp_dict, __pyx_vtabptr_12idist_cython_NeighborsHeap) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyObject_SetAttrString(__pyx_m, "NeighborsHeap", (PyObject *)&__pyx_type_12idist_cython_NeighborsHeap) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 134; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_ptype_12idist_cython_NeighborsHeap = &__pyx_type_12idist_cython_NeighborsHeap;
   if (PyType_Ready(&__pyx_type___pyx_array) < 0) {__pyx_filename = __pyx_f[2]; __pyx_lineno = 99; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __pyx_type___pyx_array.tp_print = 0;
@@ -20676,6 +20768,103 @@ static CYTHON_INLINE int __Pyx_TypeTest(PyObject *obj, PyTypeObject *type) {
     return 0;
 }
 
+static CYTHON_INLINE int __Pyx_SetItemInt_Generic(PyObject *o, PyObject *j, PyObject *v) {
+    int r;
+    if (!j) return -1;
+    r = PyObject_SetItem(o, j, v);
+    Py_DECREF(j);
+    return r;
+}
+static CYTHON_INLINE int __Pyx_SetItemInt_Fast(PyObject *o, Py_ssize_t i, PyObject *v,
+                                               int is_list, int wraparound, int boundscheck) {
+#if CYTHON_COMPILING_IN_CPYTHON
+    if (is_list || PyList_CheckExact(o)) {
+        Py_ssize_t n = (!wraparound) ? i : ((likely(i >= 0)) ? i : i + PyList_GET_SIZE(o));
+        if ((!boundscheck) || likely((n >= 0) & (n < PyList_GET_SIZE(o)))) {
+            PyObject* old = PyList_GET_ITEM(o, n);
+            Py_INCREF(v);
+            PyList_SET_ITEM(o, n, v);
+            Py_DECREF(old);
+            return 1;
+        }
+    } else {
+        PySequenceMethods *m = Py_TYPE(o)->tp_as_sequence;
+        if (likely(m && m->sq_ass_item)) {
+            if (wraparound && unlikely(i < 0) && likely(m->sq_length)) {
+                Py_ssize_t l = m->sq_length(o);
+                if (likely(l >= 0)) {
+                    i += l;
+                } else {
+                    if (PyErr_ExceptionMatches(PyExc_OverflowError))
+                        PyErr_Clear();
+                    else
+                        return -1;
+                }
+            }
+            return m->sq_ass_item(o, i, v);
+        }
+    }
+#else
+#if CYTHON_COMPILING_IN_PYPY
+    if (is_list || (PySequence_Check(o) && !PyDict_Check(o))) {
+#else
+    if (is_list || PySequence_Check(o)) {
+#endif
+        return PySequence_SetItem(o, i, v);
+    }
+#endif
+    return __Pyx_SetItemInt_Generic(o, PyInt_FromSsize_t(i), v);
+}
+
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg) {
+    PyObject *self, *result;
+    PyCFunction cfunc;
+    cfunc = PyCFunction_GET_FUNCTION(func);
+    self = PyCFunction_GET_SELF(func);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
+        return NULL;
+    result = cfunc(self, arg);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
+    }
+    return result;
+}
+#endif
+
+#if CYTHON_COMPILING_IN_CPYTHON
+static PyObject* __Pyx__PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+    PyObject *result;
+    PyObject *args = PyTuple_New(1);
+    if (unlikely(!args)) return NULL;
+    Py_INCREF(arg);
+    PyTuple_SET_ITEM(args, 0, arg);
+    result = __Pyx_PyObject_Call(func, args, NULL);
+    Py_DECREF(args);
+    return result;
+}
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+#ifdef __Pyx_CyFunction_USED
+    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
+#else
+    if (likely(PyCFunction_Check(func))) {
+#endif
+        if (likely(PyCFunction_GET_FLAGS(func) & METH_O)) {
+            return __Pyx_PyObject_CallMethO(func, arg);
+        }
+    }
+    return __Pyx__PyObject_CallOneArg(func, arg);
+}
+#else
+static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
+    PyObject* args = PyTuple_Pack(1, arg);
+    return (likely(args)) ? __Pyx_PyObject_Call(func, args, NULL) : NULL;
+}
+#endif
+
 static CYTHON_INLINE void __Pyx_RaiseTooManyValuesError(Py_ssize_t expected) {
     PyErr_Format(PyExc_ValueError,
                  "too many values to unpack (expected %" CYTHON_FORMAT_SSIZE_T "d)", expected);
@@ -21102,55 +21291,6 @@ static void __Pyx_WriteUnraisable(const char *name, CYTHON_UNUSED int clineno,
     }
 }
 
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallMethO(PyObject *func, PyObject *arg) {
-    PyObject *self, *result;
-    PyCFunction cfunc;
-    cfunc = PyCFunction_GET_FUNCTION(func);
-    self = PyCFunction_GET_SELF(func);
-    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
-        return NULL;
-    result = cfunc(self, arg);
-    Py_LeaveRecursiveCall();
-    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
-        PyErr_SetString(
-            PyExc_SystemError,
-            "NULL result without error in PyObject_Call");
-    }
-    return result;
-}
-#endif
-
-#if CYTHON_COMPILING_IN_CPYTHON
-static PyObject* __Pyx__PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-    PyObject *result;
-    PyObject *args = PyTuple_New(1);
-    if (unlikely(!args)) return NULL;
-    Py_INCREF(arg);
-    PyTuple_SET_ITEM(args, 0, arg);
-    result = __Pyx_PyObject_Call(func, args, NULL);
-    Py_DECREF(args);
-    return result;
-}
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-#ifdef __Pyx_CyFunction_USED
-    if (likely(PyCFunction_Check(func) || PyObject_TypeCheck(func, __pyx_CyFunctionType))) {
-#else
-    if (likely(PyCFunction_Check(func))) {
-#endif
-        if (likely(PyCFunction_GET_FLAGS(func) & METH_O)) {
-            return __Pyx_PyObject_CallMethO(func, arg);
-        }
-    }
-    return __Pyx__PyObject_CallOneArg(func, arg);
-}
-#else
-static CYTHON_INLINE PyObject* __Pyx_PyObject_CallOneArg(PyObject *func, PyObject *arg) {
-    PyObject* args = PyTuple_Pack(1, arg);
-    return (likely(args)) ? __Pyx_PyObject_Call(func, args, NULL) : NULL;
-}
-#endif
-
 #if !CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyBytes_Join(PyObject* sep, PyObject* values) {
     return PyObject_CallMethodObjArgs(sep, __pyx_n_s_join, values, NULL);
@@ -21369,7 +21509,7 @@ static void __Pyx_ReleaseBuffer(Py_buffer *view) {
 #endif
 
 
-        static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
+          static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level) {
     PyObject *empty_list = 0;
     PyObject *module = 0;
     PyObject *global_dict = 0;
