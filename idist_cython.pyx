@@ -24,6 +24,7 @@ from sklearn.neighbors.typedefs import DTYPE, ITYPE # this works b/c these are P
 
 from cython.parallel cimport prange
 cimport openmp
+# from cpython cimport PyObject, Py_INCREF, Py_DECREF
 
 
 #from sklearn.neighbors import dist_metrics # works, just not useful
@@ -48,18 +49,39 @@ def knn_search_sequential(dat, query_pt, int K_):
     neighbors.
     Also: https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/
     """
-    cdef np.intp_t i, j, k, n, nc, rc, chunk, jk
+    cdef np.intp_t i, j, k, n, nc, chunk, jk, thid
     cdef DTYPE_t[:, ::1] X_
     cdef DTYPE_t sqdistj
     cdef ITYPE_t D_ = dat[0].shape[1]
     cdef DTYPE_t[::1] Q_ = query_pt
-    # DEF NUM_THREADS = 2
+    cdef np.intp_t NUM_THREADS = openmp.omp_get_num_procs()
+    cdef DTYPE_t[:, ::1] distances
+    cdef ITYPE_t[:, ::1] indices
 
     if len(dat) != 1:
         raise ValueError('len(dat) != 1 which is required now that we\'re using NeighborsHeap')
 
     cdef NeighborsHeap heap = NeighborsHeap(1, K_)
+
+    cdef NeighborsHeap psubheap
+
     # cdef NeighborsHeap subheaps[NUM_THREADS]
+
+    # cdef NeighborsHeap * subheaps = <NeighborsHeap *>malloc(sizeof(NeighborsHeap) * NUM_THREADS)
+    # for i in range(NUM_THREADS):
+    #     subheaps[i] = NeighborsHeap(1, K_)
+
+    # this doesn't work down below without the GIL
+    subheaps = [NeighborsHeap(1, K_) for i in range(NUM_THREADS)]
+
+    # "How to declare an array of extension type cython objects"
+    # https://groups.google.com/forum/#!topic/cython-users/G8zLWrA-lU0
+    # Google search for: array extension type cython
+    # cdef PyObject * subheaps[NUM_THREADS]
+    # for i in range(NUM_THREADS):
+    #     tmp = NeighborsHeap(1, K_)
+    #     Py_INCREF(tmp)
+    #     subheaps[i] = <PyObject *>tmp
 
     for i, mat in enumerate(dat):
 
@@ -72,22 +94,29 @@ def knn_search_sequential(dat, query_pt, int K_):
         #         for j in range(100):
         #             x[i,:] = np.cos(x[i,:])
 
-        chunk = <np.intp_t>1e6 + 1 # +1 so that there's a remainder
+        chunk = <np.intp_t>1e4 + 1 # +1 so that there's a remainder
         nc = n / chunk
-        rc = n % chunk
 
         with nogil, cython.boundscheck(False), cython.wraparound(False):
-            for j in prange(nc, schedule='static', num_threads=4):
+            for j in prange(nc, schedule='static', num_threads=NUM_THREADS):
+                thid = openmp.omp_get_thread_num()
                 with gil:
-                    print('{} thread_id = {}'.format(j, openmp.omp_get_thread_num()))
+                    psubheap = subheaps[thid] # thread-private (https://mail.python.org/pipermail/cython-devel/2011-April/000367.html)
+                    print('{} thread_id = {}'.format(j, thid))
                 for k in range(chunk):
                     jk = j * chunk + k
                     sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
-                    heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+                    psubheap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
             for k in range(n % chunk):
                 jk = nc * chunk + k
                 sqdistj = euclidean_rdist(&Q_[0], &X_[jk, 0], D_)
                 heap.push(<ITYPE_t>0, <DTYPE_t>sqdistj, <ITYPE_t>jk) # _add_neighbor
+
+    # consolidate the heaps
+    for sh in subheaps:
+        distances, indices = sh.get_arrays(sort=False)
+        for i in range(K_):
+            heap.push(<ITYPE_t>0, <DTYPE_t>distances[0, i], <ITYPE_t>indices[0, i])
 
     # sqrt all of the reduced/squared distances to get Euclidean distances
     knn_heap = []
