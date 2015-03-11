@@ -50,6 +50,7 @@ def knn_search_sequential(dat, query_pt, int K_):
     neighbors.
     Also: https://jakevdp.github.io/blog/2012/08/08/memoryview-benchmarks/
     """
+    global _ndists2
     cdef:
         np.intp_t i, j, k, n, nc, chunk, jk, t
         DTYPE_t[:, ::1] X_
@@ -79,9 +80,9 @@ def knn_search_sequential(dat, query_pt, int K_):
 
         X_ = mat # convert to memoryview so that we can take addresses below
         n = X_.shape[0]
-        globals()['_ndists2'] += n
+        _ndists2 += n
 
-        chunk = n / 1e2 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder
+        chunk = n / <np.intp_t>1e2 + 1 # n / NUM_THREADS # <np.intp_t>1e5 + 1 # +1 to ensure there's a remainder
         nc = n / chunk
 
         # https://www.safaribooksonline.com/library/view/cython/9781491901731/ch12.html
