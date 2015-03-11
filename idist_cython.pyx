@@ -19,6 +19,14 @@ cimport cython
 # DOESN'T WORK AS THERE's NO typedefs.pxd FILE, i.e. source code is not included, i.e.
 # these have been compiled into C, perhaps they'd be accessible with 'cdef extern'
 #from sklearn.neighbors cimport typedefs # cimport DTYPE_t, ITYPE_t, DITYPE_t
+
+# "It is a compile-time error to cimport a Python-level object like the setup function. Conversely, it is a compile-
+# time error to import a C-only declaration like real_t."
+# "C and C++ access header files via the #include preprocessor command, which essentially does a dumb source-level
+# inclusion of the named header file. Cython’s cimport statement is more intelligent and less error prone: we can think
+# of it as a compile-time import statement that works with namespaces."
+# [https://www.safaribooksonline.com/library/view/cython/9781491901731/ch06.html]
+
 ctypedef np.float64_t DTYPE_t  # WARNING: should match DTYPE in typedefs.pyx
 ctypedef np.intp_t ITYPE_t  # WARNING: should match ITYPE in typedefs.pyx
 from sklearn.neighbors.typedefs import DTYPE, ITYPE # this works b/c these are Python types (used in NeighborsHeap.__cinit__)
